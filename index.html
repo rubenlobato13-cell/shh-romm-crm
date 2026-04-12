@@ -295,6 +295,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
   .pisos-chk-grid{grid-template-columns:1fr;}
 }
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -486,7 +488,8 @@ var TODOS_PISOS=[0,1,2,3,4,5,6,7];
 // STORAGE
 var _mem={};
 function sg(key,def){try{var r=localStorage.getItem(key);return r?JSON.parse(r):def;}catch(e){return _mem[key]!==undefined?_mem[key]:def;}}
-function sv(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){_mem[key]=val;}}
+function sv(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){_mem[key]=val;}if(_fbDb){try{_fbDb.ref('crm4/'+key).set(val);}catch(e){}}}
+var _fbDb=null;
 
 var pagos=sg('crm4_pagos',{});
 var nombres=sg('crm4_nombres',{});
@@ -508,6 +511,46 @@ var _pinUid=null;
 var _uEditId=null;
 
 function svU(){sv('crm4_users',usuarios);}
+
+// FIREBASE INIT
+(function(){
+  try{
+    var app=firebase.initializeApp({
+      apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",
+      authDomain:"shh-room-crm.firebaseapp.com",
+      databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId:"shh-room-crm",
+      storageBucket:"shh-room-crm.firebasestorage.app",
+      messagingSenderId:"1032498413641",
+      appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"
+    });
+    _fbDb=firebase.database(app);
+    _fbDb.ref('crm4').on('value',function(snap){
+      var d=snap.val()||{};
+      var ch=false;
+      function upd(k,cur){
+        if(d[k]==null) return cur;
+        var ns=JSON.stringify(d[k]);
+        if(ns!==JSON.stringify(cur)){
+          ch=true;
+          try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}
+          return d[k];
+        }
+        return cur;
+      }
+      pagos=upd('crm4_pagos',pagos);
+      nombres=upd('crm4_nombres',nombres);
+      reservas=upd('crm4_reservas',reservas);
+      semsAct=upd('crm4_sems',semsAct);
+      gastosExtra=upd('crm4_gastos',gastosExtra);
+      var nu=upd('crm4_users',usuarios);
+      if(nu!==usuarios){usuarios=nu;}
+      if(ch&&usuarioActual){renderAll();}
+    });
+    console.log('Firebase conectado');
+  }catch(e){console.log('Firebase error:',e);}
+})();
+
 function getU(id){for(var i=0;i<usuarios.length;i++){if(usuarios[i].id===id)return usuarios[i];}return null;}
 function esAdmin(){return usuarioActual&&usuarioActual.rol==='admin';}
 function esTrab(){return usuarioActual&&usuarioActual.rol!=='admin';}
