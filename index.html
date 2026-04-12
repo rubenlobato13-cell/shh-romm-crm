@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CRM SHH ROOM — Control de pagos</title>
+<style>
+:root{
+  --verde:#22c55e;--verde-bg:#052e16;--verde-dark:#4ade80;
+  --rojo:#ff3333;--rojo-bg:#2a0000;--rojo-dark:#ff6b6b;
+  --ambar:#f59e0b;--ambar-bg:#1c1200;--ambar-dark:#fbbf24;
+  --azul:#cc0000;--azul-dark:#ff1a1a;--azul-bg:#1a0000;
+  --gris:#6b7280;--gris-bg:#1e1e1e;
+  --fondo:#0a0a0a;--blanco:#161616;
+  --borde:#2a2a2a;--texto:#f0f0f0;--suave:#9ca3af;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(--texto);min-height:100vh;}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:#111;}
+::-webkit-scrollbar-thumb{background:#cc0000;border-radius:3px;}
+/* LOGIN */
+.login-ov{display:flex;position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:999;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+.login-ov::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at top,rgba(180,0,0,.18) 0%,transparent 65%);pointer-events:none;}
+.login-box{width:100%;max-width:340px;position:relative;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo-img{width:90px;height:135px;margin:0 auto 4px;display:block;filter:drop-shadow(0 0 12px rgba(204,0,0,.45));}
+.login-logo-img svg{display:block;}
+.login-logo h1{color:#fff;font-size:1.35rem;font-weight:800;margin-top:6px;letter-spacing:.08em;}
+.login-logo h1 em{color:#cc0000;font-style:normal;}
+.login-logo p{color:#666;font-size:.78rem;margin-top:4px;letter-spacing:.12em;text-transform:uppercase;}
+.hdr-logo-img{width:38px;height:57px;display:inline-flex;align-items:center;flex-shrink:0;filter:drop-shadow(0 0 6px rgba(204,0,0,.5));}
+.hdr-logo-img svg{display:block;}
+.user-cards{display:flex;flex-direction:column;gap:9px;}
+.ucard{background:rgba(204,0,0,.08);border:1.5px solid rgba(204,0,0,.3);border-radius:13px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .2s;width:100%;text-align:left;}
+.ucard:hover,.ucard:active{background:rgba(204,0,0,.18);border-color:#cc0000;transform:translateY(-1px);}
+.ucard-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:#fff;flex-shrink:0;border:1.5px solid rgba(255,255,255,.2);}
+.ucard-nm{color:#fff;font-weight:700;font-size:.95rem;}
+.ucard-rl{font-size:.72rem;margin-top:2px;}
+.rl-admin{color:#ff6b6b;}
+.rl-trab{color:#86efac;}
+.pin-hdr{text-align:center;margin-bottom:18px;}
+.pin-hdr .pnom{color:#fff;font-size:1.1rem;font-weight:700;}
+.pin-hdr .psub{color:#94a3b8;font-size:.8rem;margin-top:3px;}
+.pin-dots{display:flex;justify-content:center;gap:14px;margin:0 0 10px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;background:rgba(204,0,0,.15);border:2px solid rgba(204,0,0,.4);transition:all .18s;}
+.pin-dot.on{background:#cc0000;border-color:#ff3333;transform:scale(1.2);box-shadow:0 0 8px rgba(204,0,0,.6);}
+.pin-err{color:#ff6b6b;text-align:center;font-size:.8rem;min-height:20px;margin-bottom:8px;}
+.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:230px;margin:0 auto;}
+.pkey{background:rgba(204,0,0,.1);border:1.5px solid rgba(204,0,0,.3);color:#fff;border-radius:11px;padding:15px 8px;font-size:1.2rem;font-weight:700;cursor:pointer;transition:all .15s;min-height:54px;}
+.pkey:hover,.pkey:active{background:rgba(204,0,0,.28);border-color:#cc0000;}
+.pkey.sec{font-size:.8rem;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);}
+/* HEADER */
+.hdr{background:#000;color:#fff;padding:11px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 0 #cc0000,0 4px 20px rgba(204,0,0,.2);border-bottom:2px solid #cc0000;}
+.hdr-logo{display:flex;align-items:center;gap:12px;}
+.hdr-title{font-size:1.15rem;font-weight:900;letter-spacing:.06em;}
+.hdr-title em{color:#cc0000;font-style:normal;}
+.hdr-title span{color:#666;font-size:.72rem;font-weight:400;display:block;margin-top:1px;letter-spacing:.1em;text-transform:uppercase;}
+.mes-nav{display:flex;align-items:center;gap:7px;}
+.mes-nav button{background:rgba(204,0,0,.12);border:1px solid rgba(204,0,0,.35);color:#fff;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:.82rem;transition:all .2s;}
+.mes-nav button:hover{background:rgba(204,0,0,.3);border-color:#cc0000;}
+.mes-lbl{background:rgba(204,0,0,.08);border-radius:8px;padding:7px 16px;font-size:.93rem;font-weight:700;border:1px solid rgba(204,0,0,.3);min-width:155px;text-align:center;color:#fff;}
+.hdr-usr{display:none;background:rgba(204,0,0,.1);border:1px solid rgba(204,0,0,.35);border-radius:9px;padding:6px 12px;font-size:.82rem;color:#fff;align-items:center;gap:8px;flex-shrink:0;}
+.btn-salir{background:#cc0000;border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.72rem;min-height:28px;}
+.btn-salir:hover{background:#ff1a1a;}
+/* TABS */
+.tabs-wrap{background:#111;border-bottom:1px solid #2a2a2a;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tabs{display:flex;padding:0 10px;gap:2px;min-width:max-content;}
+.tab{padding:10px 13px;cursor:pointer;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:#666;transition:all .2s;white-space:nowrap;user-select:none;display:flex;align-items:center;min-height:44px;}
+.tab:hover{color:#cc0000;background:rgba(204,0,0,.08);border-radius:6px 6px 0 0;}
+.tab.active{color:#fff;border-bottom-color:#cc0000;font-weight:700;}
+.badge{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:1px 6px;font-size:.68rem;margin-left:5px;font-weight:700;}
+.badge.r{background:var(--rojo);color:#fff;}
+.badge.a{background:var(--ambar);color:#fff;}
+.badge.v{background:var(--verde);color:#fff;}
+.main{padding:16px 18px;}
+.view{display:none;}
+.view.active{display:block;}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:12px;margin-bottom:18px;}
+.stat{background:#161616;border-radius:11px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.5);border-left:4px solid var(--azul);border:1px solid #222;border-left:4px solid var(--azul);}
+.stat.v{border-left-color:var(--verde);}
+.stat.r{border-left-color:var(--rojo);}
+.stat.a{border-left-color:var(--ambar);}
+.stat .lbl{font-size:.7rem;color:var(--suave);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.stat .val{font-size:1.55rem;font-weight:800;}
+.stat .sub{font-size:.71rem;color:var(--suave);margin-top:2px;}
+.pisos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+.piso-card{background:#161616;border-radius:11px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.5);cursor:pointer;transition:all .2s;border:1px solid #222;}
+.piso-card:hover{border-color:#cc0000;transform:translateY(-2px);box-shadow:0 4px 20px rgba(204,0,0,.15);}
+.piso-card h3{font-size:.93rem;font-weight:700;margin-bottom:9px;}
+.prog-bar{height:7px;background:var(--gris-bg);border-radius:4px;overflow:hidden;margin-bottom:5px;}
+.prog-fill{height:100%;border-radius:4px;transition:width .4s;}
+.prog-fill.contab{background:var(--verde);}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
+.chip{padding:3px 8px;border-radius:14px;font-size:.7rem;font-weight:600;}
+.chip.c{background:var(--verde-bg);color:var(--verde-dark);}
+.chip.r{background:var(--ambar-bg);color:var(--ambar-dark);}
+.chip.n{background:var(--rojo-bg);color:var(--rojo-dark);}
+.chip.v{background:var(--gris-bg);color:var(--gris);}
+.piso-footer{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--borde);font-size:.76rem;flex-wrap:wrap;gap:4px;}
+.piso-vhdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.piso-vtitle{font-size:1.15rem;font-weight:800;}
+.piso-vsub{font-size:.79rem;color:var(--suave);margin-top:3px;}
+.btns-row{display:flex;gap:7px;flex-wrap:wrap;}
+.btn-green{background:var(--verde);color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.79rem;font-weight:600;min-height:36px;}
+.btn-green:hover{background:var(--verde-dark);}
+.btn-ambar{background:var(--ambar);color:#fff;border:none;border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.79rem;font-weight:600;min-height:36px;}
+.btn-ambar:hover{background:var(--ambar-dark);}
+.btn-outline{background:#1a1a1a;color:var(--texto);border:2px solid #333;border-radius:8px;padding:6px 11px;cursor:pointer;font-size:.79rem;font-weight:600;min-height:36px;}
+.btn-outline:hover{border-color:var(--azul);color:var(--azul-dark);background:#1a0000;}
+.tabla-wrap{overflow-x:auto;border-radius:11px;box-shadow:0 1px 4px rgba(0,0,0,.08);-webkit-overflow-scrolling:touch;}
+.tabla{width:100%;border-collapse:collapse;background:#111;min-width:750px;}
+.tabla thead tr.th1 th{background:#000;color:#fff;padding:10px 11px;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #cc0000;}
+.tabla thead tr.th1 th.sem-h{text-align:center;min-width:145px;}
+.tabla thead tr.th2 th{background:#0d0d0d;color:#666;padding:5px 11px;font-size:.7rem;font-weight:600;text-align:center;border-bottom:1px solid #222;}
+.tabla thead tr.th2 th.info-c{text-align:left;}
+.tabla td{padding:11px 11px;border-bottom:1px solid #1e1e1e;font-size:.875rem;vertical-align:middle;}
+.tabla tbody tr:last-child td{border-bottom:none;}
+.tabla tbody tr:hover td{background:#1a1a1a;}
+.tabla tfoot td{padding:8px 11px;font-weight:700;font-size:.8rem;background:#000;border-top:2px solid #cc0000;text-align:center;color:#cc0000;}
+.nombre-wrap{display:flex;align-items:center;gap:5px;}
+.btn-edit-n{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px;min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;}
+.btn-edit-n:hover{color:var(--azul);background:var(--azul-bg);}
+.celda-pago{display:flex;flex-direction:column;align-items:stretch;gap:4px;}
+.pago-row-top{display:flex;align-items:center;gap:4px;}
+.pago-btn{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:8px;border:2px solid;cursor:pointer;font-size:.78rem;font-weight:700;transition:all .18s;flex:1;min-height:40px;}
+.pago-btn.pendiente{background:var(--rojo-bg);border-color:var(--rojo);color:var(--rojo-dark);}
+.pago-btn.recogida{background:var(--ambar-bg);border-color:var(--ambar);color:var(--ambar-dark);}
+.pago-btn.contabilizada{background:var(--verde-bg);border-color:var(--verde);color:var(--verde-dark);}
+.pago-btn:hover{filter:brightness(.93);transform:scale(1.02);}
+.btn-del-pago{background:var(--rojo-bg);border:1.5px solid var(--rojo);color:var(--rojo-dark);border-radius:6px;width:28px;height:36px;cursor:pointer;font-size:.75rem;font-weight:700;flex-shrink:0;transition:all .15s;}
+.btn-del-pago:hover{background:var(--rojo);color:#fff;}
+.prog-mini{height:3px;border-radius:2px;background:#2a2a2a;overflow:hidden;margin-top:2px;}
+.prog-mini-fill{height:100%;border-radius:2px;transition:width .3s;}
+.prog-mini-fill.recogida{background:var(--ambar);}
+.prog-mini-fill.contabilizada{background:var(--verde);}
+.nota-display{font-size:.66rem;color:var(--suave);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;}
+.sem-disabled{opacity:.35;pointer-events:none;}
+.sem-toggle-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:.7rem;opacity:.65;margin-left:4px;}
+.sem-toggle-btn:hover{opacity:1;}
+.reserva-tag{background:var(--ambar-bg);color:var(--ambar-dark);padding:2px 7px;border-radius:10px;font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;border:1px solid rgba(245,158,11,.3);}
+.reserva-tag:hover{background:rgba(245,158,11,.25);}
+.btn-add-reserva{background:none;border:1.5px dashed #94a3b8;color:#94a3b8;border-radius:8px;padding:2px 7px;cursor:pointer;font-size:.7rem;}
+.btn-add-reserva:hover{border-color:var(--ambar);color:var(--ambar-dark);}
+.resumen-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:14px;}
+.res-card{background:#161616;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 8px rgba(0,0,0,.5);border:1px solid #2a2a2a;}
+.res-card .rl{font-size:.68rem;color:var(--suave);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.res-card .rv{font-size:1.2rem;font-weight:800;color:#fff;}
+.alerta-item{background:#161616;border-radius:10px;padding:12px 14px;box-shadow:0 1px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:space-between;border-left:4px solid var(--rojo);margin-bottom:8px;border:1px solid #222;border-left:4px solid var(--rojo);}
+.alerta-item.recogida{border-left-color:var(--ambar);border-color:#1c1200;border-left-color:var(--ambar);}
+.al-info .al-nom{font-weight:700;font-size:.88rem;}
+.al-info .al-sub{font-size:.74rem;color:var(--suave);}
+.al-right{display:flex;align-items:center;gap:8px;}
+.al-imp{font-size:1rem;font-weight:800;color:var(--rojo-dark);}
+.al-imp.recogida{color:var(--ambar-dark);}
+.hist-filters{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;}
+.hist-filters select{padding:7px 10px;border:2px solid #2a2a2a;border-radius:8px;font-size:16px;background:#111;color:#f0f0f0;}
+.hist-table{width:100%;border-collapse:collapse;background:#111;border-radius:11px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.5);}
+.hist-table th{background:#000;color:#fff;padding:10px 12px;text-align:left;font-size:.76rem;font-weight:600;text-transform:uppercase;border-bottom:2px solid #cc0000;}
+.hist-table td{padding:10px 12px;border-bottom:1px solid #1e1e1e;font-size:.82rem;}
+.hist-table tr:last-child td{border-bottom:none;}
+.hist-table tr:hover td{background:#1a1a1a;}
+.est-badge{display:inline-block;padding:2px 8px;border-radius:9px;font-size:.7rem;font-weight:700;}
+.est-badge.contabilizada{background:var(--verde-bg);color:var(--verde-dark);}
+.est-badge.recogida{background:var(--ambar-bg);color:var(--ambar-dark);}
+.est-badge.pendiente{background:var(--rojo-bg);color:var(--rojo-dark);}
+.anual-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.anual-hdr h2{font-size:1.1rem;font-weight:800;}
+.anio-nav{display:flex;align-items:center;gap:8px;}
+.anio-nav button{background:#1a1a1a;border:2px solid #333;color:var(--texto);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.82rem;font-weight:600;}
+.anio-nav button:hover{border-color:#cc0000;color:#ff3333;background:#1a0000;}
+.anio-lbl{font-size:1.1rem;font-weight:800;min-width:60px;text-align:center;}
+.anual-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;}
+.anual-table{width:100%;border-collapse:collapse;background:#111;min-width:900px;}
+.anual-table th{background:#000;color:#fff;padding:10px 8px;font-size:.74rem;font-weight:700;text-transform:uppercase;text-align:center;border-bottom:2px solid #cc0000;}
+.anual-table th.row-lbl{text-align:left;min-width:160px;}
+.anual-table td{padding:9px 8px;border-bottom:1px solid #1e1e1e;font-size:.83rem;text-align:center;}
+.anual-table td.row-lbl{text-align:left;font-weight:600;color:var(--suave);font-size:.8rem;padding-left:12px;}
+.anual-table td.mes-actual{background:rgba(204,0,0,.08);}
+.anual-table tr.neto-row td{font-weight:800;font-size:.9rem;background:#0d0d0d;border-top:2px solid #cc0000;}
+.anual-table tr.neto-row td.pos{color:var(--verde-dark);}
+.anual-table tr.neto-row td.neg{color:var(--rojo-dark);}
+.anual-table tr.neto-row td:last-child{background:rgba(34,197,94,.08);}
+.anual-table .mes-head{font-size:.72rem;}
+.anual-table .mes-head.actual{color:#ff6b6b;}
+.gasto-cell{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.gasto-sum{font-weight:700;color:var(--rojo-dark);}
+.btn-add-gasto{background:none;border:1px dashed #94a3b8;color:#94a3b8;border-radius:5px;padding:1px 5px;cursor:pointer;font-size:.65rem;line-height:1.4;}
+.btn-add-gasto:hover{border-color:var(--rojo);color:var(--rojo-dark);}
+.gasto-items{font-size:.65rem;color:var(--suave);max-width:80px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+.anual-leyenda{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:.78rem;}
+.ley-item{display:flex;align-items:center;gap:5px;}
+.ley-dot{width:10px;height:10px;border-radius:50%;}
+/* USUARIOS PANEL */
+.usr-item{background:#161616;border-radius:11px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.5);margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid #2a2a2a;}
+.usr-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:800;color:#fff;flex-shrink:0;}
+.usr-inf{flex:1;min-width:0;}
+.usr-inf .un{font-weight:700;font-size:.95rem;}
+.usr-inf .ur{font-size:.73rem;color:var(--suave);margin-top:1px;}
+.usr-pchips{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+.upchip{background:var(--azul-bg);color:var(--azul-dark);padding:2px 7px;border-radius:9px;font-size:.67rem;font-weight:600;}
+.usr-acts{display:flex;gap:6px;flex-shrink:0;}
+.btn-ue{background:var(--azul-bg);color:var(--azul-dark);border:none;border-radius:7px;padding:7px 11px;cursor:pointer;font-size:.78rem;font-weight:600;min-height:36px;}
+.btn-ud{background:var(--rojo-bg);color:var(--rojo-dark);border:none;border-radius:7px;padding:7px 11px;cursor:pointer;font-size:.78rem;font-weight:600;min-height:36px;}
+.btn-add-usr{background:var(--azul);color:#fff;border:none;border-radius:9px;padding:12px 16px;cursor:pointer;font-size:.88rem;font-weight:700;width:100%;margin-top:6px;min-height:44px;}
+.btn-add-usr:hover{background:var(--azul-dark);}
+/* MODALES */
+.modal-wrap{display:none;position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
+.modal-wrap.open{display:flex;}
+.modal-box{background:#161616;border-radius:16px;padding:20px;width:92%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px #2a2a2a;max-height:90vh;overflow-y:auto;}
+.modal-box h3{font-size:.98rem;font-weight:800;margin-bottom:10px;color:#fff;}
+.modal-precio-info{display:flex;align-items:center;justify-content:space-between;background:#111;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:.82rem;border:1px solid #2a2a2a;color:#f0f0f0;}
+.precio-tot{font-weight:800;font-size:.92rem;}
+.precio-tot.full{color:var(--verde-dark);}
+.precio-tot.partial{color:var(--ambar-dark);}
+.precio-tot.zero{color:var(--rojo-dark);}
+.parciales-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;max-height:200px;overflow-y:auto;}
+.parcial-row{display:flex;align-items:center;gap:6px;background:#111;padding:7px 9px;border-radius:8px;border:1px solid #2a2a2a;}
+.p-imp{width:80px;padding:6px 7px;border:2px solid #2a2a2a;border-radius:7px;font-size:16px;font-weight:700;text-align:right;background:#111;color:#f0f0f0;}
+.p-imp:focus{outline:none;border-color:#cc0000;}
+.p-nota{flex:1;padding:6px 7px;border:2px solid #2a2a2a;border-radius:7px;font-size:16px;background:#111;color:#f0f0f0;}
+.p-nota:focus{outline:none;border-color:#cc0000;}
+.p-del{background:none;border:none;color:var(--rojo);cursor:pointer;font-size:1rem;padding:3px 6px;border-radius:5px;min-height:36px;}
+.p-del:hover{background:var(--rojo-bg);}
+.parciales-empty{text-align:center;padding:12px;color:var(--suave);font-size:.82rem;border:2px dashed #2a2a2a;border-radius:8px;}
+.btn-add-parcial{width:100%;background:var(--azul-bg);color:var(--azul-dark);border:2px dashed var(--azul);border-radius:8px;padding:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:10px;min-height:40px;}
+.btn-add-parcial:hover{background:var(--azul);color:#fff;}
+.chk-row{display:flex;align-items:center;gap:8px;padding:8px 11px;background:#111;border-radius:8px;margin-bottom:10px;cursor:pointer;user-select:none;border:1px solid #2a2a2a;}
+.chk-row input{width:16px;height:16px;cursor:pointer;accent-color:var(--verde);}
+.chk-row label{font-size:.8rem;font-weight:600;cursor:pointer;color:var(--suave);}
+.estado-selector{margin-bottom:12px;}
+.estado-selector .lbl-est{font-size:.75rem;color:var(--suave);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.estado-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.est-btn{padding:10px 8px;border-radius:10px;border:2px solid #2a2a2a;background:#1a1a1a;color:var(--texto);cursor:pointer;font-size:.82rem;font-weight:700;transition:all .18s;text-align:center;min-height:44px;}
+.est-btn.sel-recogida{background:var(--ambar-bg);border-color:var(--ambar);color:var(--ambar-dark);}
+.est-btn.sel-contabilizada{background:var(--verde-bg);border-color:var(--verde);color:var(--verde-dark);}
+.mbtns{display:flex;gap:8px;}
+.mbtn-ok{flex:1;background:var(--verde);color:#fff;border:none;border-radius:8px;padding:11px;cursor:pointer;font-weight:700;font-size:.9rem;min-height:44px;}
+.mbtn-ok:hover{background:var(--verde-dark);}
+.mbtn-cancel{flex:1;background:#1e1e1e;color:var(--texto);border:1px solid #333;border-radius:8px;padding:11px;cursor:pointer;font-weight:600;font-size:.9rem;min-height:44px;}
+.mbtn-cancel:hover{background:#2a2a2a;}
+.modal-sm{background:#161616;border-radius:14px;padding:20px;width:90%;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px #2a2a2a;}
+.modal-sm h3{font-size:.95rem;font-weight:700;margin-bottom:12px;color:#fff;}
+.mf{margin-bottom:11px;}
+.mf label{display:block;font-size:.75rem;color:var(--suave);margin-bottom:3px;font-weight:600;}
+.mf input,.mf select{width:100%;padding:10px 11px;border:2px solid #2a2a2a;border-radius:8px;font-size:16px;background:#111;color:#f0f0f0;}
+.mf input:focus,.mf select:focus{outline:none;border-color:#cc0000;}
+.sm-btns{display:flex;gap:7px;flex-wrap:wrap;}
+.sm-btns button{flex:1;border-radius:8px;padding:9px 10px;cursor:pointer;font-weight:600;font-size:.83rem;border:none;min-height:40px;}
+.btn-ba{background:var(--azul);color:#fff;}
+.btn-ba:hover{background:var(--azul-dark);}
+.btn-bv{background:#1e1e1e;color:var(--suave);border:1px solid #333;}
+.btn-bv:hover{background:var(--rojo-bg);color:var(--rojo-dark);}
+.btn-bc{background:#1e1e1e;color:var(--texto);border:1px solid #333;}
+.btn-bc:hover{background:#2a2a2a;}
+.modal-ge{background:#161616;border-radius:16px;padding:20px;width:92%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px #2a2a2a;max-height:85vh;overflow-y:auto;}
+.modal-ge h3{font-size:.95rem;font-weight:700;margin-bottom:12px;color:#fff;}
+.ge-list{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;max-height:180px;overflow-y:auto;}
+.ge-row{display:flex;align-items:center;gap:6px;background:#111;padding:7px 9px;border-radius:8px;border:1px solid #2a2a2a;}
+.ge-concepto{flex:1;padding:6px 7px;border:2px solid #2a2a2a;border-radius:7px;font-size:16px;background:#111;color:#f0f0f0;}
+.ge-imp{width:80px;padding:6px 7px;border:2px solid #2a2a2a;border-radius:7px;font-size:16px;font-weight:700;text-align:right;background:#111;color:#f0f0f0;}
+.ge-del{background:none;border:none;color:var(--rojo);cursor:pointer;font-size:1rem;padding:3px 6px;border-radius:5px;min-height:36px;}
+.btn-add-ge{width:100%;background:rgba(204,0,0,.08);color:var(--rojo-dark);border:2px dashed #cc0000;border-radius:8px;padding:8px;cursor:pointer;font-size:.82rem;font-weight:600;margin-bottom:10px;min-height:40px;}
+.btn-add-ge:hover{background:rgba(204,0,0,.2);}
+.ge-total{text-align:right;font-weight:700;font-size:.85rem;color:var(--rojo-dark);margin-bottom:12px;}
+/* MODAL USUARIO */
+.modal-usr{background:#161616;border-radius:16px;padding:20px;width:92%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.8),0 0 0 1px #2a2a2a;max-height:92vh;overflow-y:auto;}
+.modal-usr h3{font-size:.98rem;font-weight:800;margin-bottom:14px;color:#fff;}
+.rol-row{display:flex;gap:10px;margin-top:6px;}
+.rol-opt{display:flex;align-items:center;gap:6px;cursor:pointer;background:#111;border-radius:8px;padding:9px 12px;flex:1;border:2px solid #2a2a2a;transition:all .18s;color:#f0f0f0;}
+.rol-opt input{width:16px;height:16px;accent-color:var(--azul);}
+.rol-opt span{font-size:.83rem;font-weight:600;}
+.rol-opt.sel-a{border-color:var(--azul);background:var(--azul-bg);}
+.rol-opt.sel-t{border-color:var(--verde);background:var(--verde-bg);}
+.pisos-chk-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px;}
+.piso-chk-lbl{display:flex;align-items:center;gap:6px;background:#111;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:500;border:1px solid #2a2a2a;color:#f0f0f0;}
+.piso-chk-lbl input{width:16px;height:16px;accent-color:var(--azul);}
+@media(max-width:640px){
+  .hdr{flex-direction:column;align-items:flex-start;}
+  .main{padding:8px;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .pisos-grid{grid-template-columns:1fr;}
+  .modal-wrap{align-items:flex-end;}
+  .modal-box,.modal-sm,.modal-ge,.modal-usr{width:100%;max-width:100%;border-radius:20px 20px 0 0;padding:20px 16px 32px;}
+  .piso-vhdr{flex-direction:column;}
+  .btns-row{width:100%;}
+  .btns-row button{flex:1;}
+  .resumen-row{grid-template-columns:1fr 1fr;}
+  .tabla-wrap::after{content:'← desliza para ver semanas →';display:block;text-align:center;font-size:.68rem;color:#555;padding:4px;background:#0d0d0d;border-bottom-left-radius:11px;border-bottom-right-radius:11px;}
+  .anual-wrap::after{content:'← desliza →';display:block;text-align:center;font-size:.68rem;color:#555;padding:4px;background:#0d0d0d;}
+  .pisos-chk-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-ov" id="login-ov">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-img"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1536" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"> <path d="M0 0 C2.234 1.82 3.738 3.172 4.744 5.908 C4.794 6.468 4.845 7.027 4.896 7.604 C3.988 7.205 3.079 6.807 2.143 6.396 C-23.925 -4.721 -49.825 -4.091 -76.104 5.604 C-89.229 10.94 -99.884 18.944 -110.104 28.604 C-110.832 29.267 -111.56 29.931 -112.311 30.615 C-132.952 50.141 -143.984 76.492 -153.142 102.853 C-154.403 106.46 -155.74 110.034 -157.104 113.604 C-157.385 114.35 -157.666 115.096 -157.955 115.865 C-167.625 141.396 -182.039 161.382 -200.354 181.354 C-212.882 195.067 -223.872 209.051 -223.572 228.467 C-222.769 246.178 -214.034 259.976 -204.932 274.525 C-198.341 285.623 -194.983 296.557 -197.717 309.51 C-203.457 327.11 -218.485 337.13 -233.318 346.732 C-237.029 349.225 -240.483 351.969 -243.928 354.814 C-245.666 356.244 -247.469 357.594 -249.291 358.916 C-256.382 365.692 -261.212 374.423 -261.584 384.314 C-261.655 391.724 -261 396.52 -256.416 402.686 C-255.104 404.604 -255.104 404.604 -255.104 407.604 C-262.535 404.036 -266.932 399.079 -269.916 391.354 C-273.225 380.903 -273.217 371.542 -268.104 361.604 C-260.621 350.22 -250.238 342.893 -239.133 335.393 C-215.636 319.505 -215.636 319.505 -212.545 308.209 C-209.628 290.989 -216.761 279.983 -225.285 265.834 C-235.175 249.297 -240.402 232.362 -235.854 213.104 C-231.447 198.111 -222.667 186.672 -212.438 175.151 C-211.194 173.708 -210.026 172.201 -208.865 170.689 C-208.284 170.001 -207.702 169.313 -207.104 168.604 C-206.444 168.604 -205.784 168.604 -205.104 168.604 C-204.853 167.871 -204.603 167.139 -204.346 166.385 C-202.997 163.365 -201.45 161.544 -199.229 159.104 C-184.073 140.941 -176.678 119.198 -170.085 96.888 C-162.709 71.943 -154.216 48.635 -137.104 28.604 C-136.89 28.349 -136.89 28.349 -135.808 27.059 C-104.798 -9.673 -41.739 -31.855 0 0 Z " fill="#cc0000" transform="translate(556.103515625,390.396484375)"/> <path d="M0 0 C13.69 3.057 27.094 9.008 36.426 19.82 C36.426 20.48 36.426 21.14 36.426 21.82 C36.988 22.032 37.55 22.243 38.129 22.461 C41.2 24.278 43.067 26.761 45.176 29.57 C45.613 30.148 46.049 30.726 46.5 31.321 C52.793 39.827 57.688 49.058 62.18 58.613 C62.524 59.345 62.868 60.077 63.222 60.832 C66.773 68.457 70.02 76.202 73.238 83.972 C96.085 139.054 96.085 139.054 110.379 159.192 C113.426 163.526 113.426 163.526 113.426 166.82 C114.086 166.82 114.746 166.82 115.426 166.82 C115.426 167.81 115.426 168.8 115.426 169.82 C116.416 170.15 117.406 170.48 118.426 170.82 C119.833 172.38 119.833 172.38 121.281 174.398 C121.817 175.141 122.354 175.883 122.906 176.648 C123.188 177.048 123.188 177.048 124.613 179.07 C124.903 179.478 124.903 179.478 126.371 181.543 C140.126 201.054 150.713 221.464 146.922 246.094 C144.521 257.643 139.812 267.281 133.801 277.32 C127.211 288.433 124.008 297.798 126.426 310.82 C129.895 322.451 139.804 331.639 147.964 340.27 C150.161 342.6 152.33 344.954 154.488 347.32 C154.834 347.697 154.834 347.697 156.586 349.602 C161.426 355.438 161.426 355.438 161.426 359.82 C162.086 359.82 162.746 359.82 163.426 359.82 C167.695 369.852 170.957 379.813 167.516 390.699 C166.588 392.824 165.607 394.827 164.426 396.82 C163.766 396.82 163.106 396.82 162.426 396.82 C162.199 397.439 161.972 398.058 161.738 398.695 C160.046 401.434 158.433 401.871 155.426 402.82 C156.329 397.146 156.329 397.146 156.941 395.094 C158.943 385.699 158.335 375.14 153.426 366.82 C147.503 357.711 140.712 349.643 132.465 342.59 C120.991 332.633 112.039 321.394 110.551 305.883 C110.077 294.93 112.496 286.547 117.426 276.82 C118.086 276.82 118.746 276.82 119.426 276.82 C119.534 276.086 119.642 275.351 119.754 274.594 C120.468 271.648 121.48 269.937 123.176 267.445 C131.882 253.494 134.866 235.895 131.426 219.82 C128.143 208.494 122.204 198.137 114.895 188.957 C113.426 186.82 113.426 186.82 113.426 183.82 C112.824 183.56 112.222 183.3 111.602 183.032 C109.247 181.72 108.196 180.584 106.613 178.426 C106.101 177.728 105.589 177.031 105.062 176.313 C104.792 175.932 104.792 175.932 103.426 174.008 C102.857 173.212 102.288 172.416 101.702 171.595 C95.251 162.392 89.798 152.679 84.426 142.82 C83.552 141.25 82.678 139.68 81.805 138.109 C75.018 125.746 69.672 112.896 64.426 99.82 C62.214 94.316 59.997 88.812 57.778 83.311 C56.832 80.96 55.893 78.606 54.954 76.252 C44.159 49.309 44.159 49.309 36.676 37.57 C36.272 36.928 35.868 36.286 35.451 35.625 C31.07 28.905 24.737 19.476 17.426 15.82 C17.426 15.16 17.426 14.5 17.426 13.82 C16.766 13.593 16.106 13.367 15.426 13.133 C12.967 12.057 10.975 10.951 8.738 9.508 C4.153 6.562 -0.669 4.183 -5.574 1.82 C-2.574 -0.18 -2.574 -0.18 0 0 Z " fill="#cc0000" transform="translate(574.57421875,392.1796875)"/> <path d="M0 0 C4.651 3.373 4.651 3.373 5.68 6.25 C5.744 6.827 5.809 7.405 5.875 8 C5.553 7.903 5.553 7.903 3.926 7.414 C-13.081 2.513 -29.061 1.171 -45.125 10 C-63.205 21.295 -69.361 38.109 -74.125 58 C-74.868 61.326 -75.589 64.655 -76.306 67.987 C-84.347 105.336 -99.384 134.33 -132.066 155.945 C-137.156 159.117 -142.337 162.124 -147.52 165.141 C-148.001 165.422 -148.001 165.422 -150.44 166.848 C-152.347 167.962 -154.257 169.069 -156.172 170.169 C-168.113 177.129 -178.481 184.522 -183.125 198 C-185.931 208.887 -183.012 221.298 -177.469 230.855 C-175.426 233.958 -173.294 236.985 -171.125 240 C-150.443 269.119 -150.443 269.119 -152.125 288 C-153.381 295.04 -156.214 301.705 -161.125 307 C-162.115 307 -163.105 307 -164.125 307 C-163.968 305.849 -163.81 304.698 -163.648 303.512 C-160.933 281.533 -168.293 266.661 -181.327 249.39 C-191.185 236.291 -200.445 220.124 -199.441 203.066 C-197.204 188.451 -188.962 177.998 -177.375 169.312 C-172.086 165.565 -166.635 162.075 -161.188 158.562 C-140.062 144.924 -119.621 128.992 -108.125 106 C-107.465 106 -106.805 106 -106.125 106 C-105.995 105.269 -105.865 104.538 -105.732 103.785 C-105.165 101.183 -104.408 98.912 -103.418 96.445 C-103.081 95.591 -102.743 94.738 -102.396 93.858 C-102.038 92.956 -101.681 92.054 -101.312 91.125 C-97.275 80.693 -94.237 70.373 -91.953 59.422 C-87.262 36.94 -80.461 17.115 -61.062 3.062 C-56.275 -0.046 -51.364 -2.733 -46.125 -5 C-45.765 -5.16 -45.765 -5.16 -43.941 -5.973 C-29.108 -11.5 -12.735 -8.729 0 0 Z " fill="#cc0000" transform="translate(554.125,422)"/> <path d="M0 0 C15.122 8.249 21.208 23.787 25.875 39.625 C26.209 40.728 26.543 41.831 26.887 42.967 C28.41 48.029 29.875 53.101 31.246 58.207 C39.66 89.302 52.46 117.647 75.273 140.875 C76.75 142.688 76.75 142.688 76.75 145.688 C77.32 145.904 77.89 146.121 78.477 146.344 C89.63 152.936 96.914 171.026 100.75 182.688 C103.129 192.008 102.901 202.952 98.75 211.688 C98.398 212.445 98.046 213.203 97.684 213.984 C94.404 220.435 89.764 227.035 82.75 229.688 C81.76 229.357 80.77 229.028 79.75 228.688 C80.16 227.926 80.57 227.164 80.992 226.379 C81.531 225.346 82.07 224.314 82.625 223.25 C83.159 222.241 83.692 221.231 84.242 220.191 C87.319 213.042 88.116 206.043 88.062 198.312 C88.059 197.484 88.056 196.655 88.052 195.802 C87.939 189.419 87.092 183.663 84.75 177.688 C84.317 176.578 83.884 175.468 83.438 174.324 C81.757 170.462 79.535 167.145 77.062 163.75 C76.622 163.139 76.181 162.528 75.727 161.898 C72.663 157.73 69.38 154.025 65.609 150.473 C63.714 148.653 62.017 146.748 60.312 144.75 C57.807 141.819 55.17 139.155 52.375 136.5 C28.893 113.217 19.501 79.842 13.285 48.461 C10.083 32.479 6.2 17.937 -6.25 6.688 C-9.793 4.386 -13.414 2.451 -17.25 0.688 C-17.25 -0.303 -17.25 -1.293 -17.25 -2.312 C-11.178 -4.337 -5.63 -2.735 0 0 Z " fill="#cc0000" transform="translate(585.25,434.3125)"/> <path d="M0 0 C-0.33 0.66 -0.66 1.32 -1 2 C-3.722 2.382 -6.389 2.656 -9.125 2.875 C-17.774 3.708 -25.687 5.394 -34 8 C-35.23 8.383 -36.46 8.766 -37.727 9.16 C-44.909 11.552 -50.99 14.374 -57 19 C-57.66 18.67 -58.32 18.34 -59 18 C-57.381 16.327 -55.755 14.662 -54.125 13 C-53.22 12.072 -52.315 11.144 -51.383 10.188 C-49 8 -49 8 -47 8 C-47 7.34 -47 6.68 -47 6 C-44.795 4.701 -42.587 3.411 -40.375 2.125 C-39.758 1.76 -39.14 1.395 -38.504 1.02 C-25.981 -6.231 -12.979 -6.489 0 0 Z " fill="#cc0000" transform="translate(607,529)"/> <path d="M0 0 C0.33 0.165 0.33 0.165 2 1 C7.319 31.017 2.629 66.99 -14 93 C-14.66 93 -15.32 93 -16 93 C-16.106 93.741 -16.211 94.482 -16.32 95.246 C-19.709 108.976 -39.733 124.261 -51.049 131.267 C-58.383 135.616 -65.701 138.083 -74 140 C-74.015 140.589 -74.029 141.178 -74.044 141.785 C-74.12 144.503 -74.216 147.22 -74.312 149.938 C-74.335 150.864 -74.358 151.79 -74.381 152.744 C-74.621 158.964 -75.687 164.218 -78 170 C-78.99 169.67 -79.98 169.34 -81 169 C-81.049 164.64 -81.086 160.28 -81.11 155.92 C-81.12 154.437 -81.134 152.954 -81.151 151.471 C-81.175 149.339 -81.186 147.207 -81.195 145.074 C-81.206 143.791 -81.216 142.508 -81.227 141.186 C-81 138 -81 138 -79 135 C-76.934 134.043 -76.934 134.043 -74.438 133.188 C-69.717 131.427 -65.887 129.112 -61.812 126.172 C-60 125 -60 125 -58 125 C-57.763 124.423 -57.526 123.845 -57.281 123.25 C-55.725 120.517 -53.913 119.016 -51.5 117 C-18.378 87.781 -4.986 42.381 0 0 Z " fill="#cc0000" transform="translate(620,566)"/> <path d="M0 0 C2 1 2 1 2.667 2.999 C2.765 3.436 2.765 3.436 3.262 5.645 C3.49 6.622 3.718 7.599 3.953 8.606 C4.195 9.664 4.438 10.722 4.688 11.812 C12.36 43.766 26.037 71.673 47 97 C47.477 97.612 47.954 98.225 48.445 98.855 C55.948 108.224 67.136 116.877 78 122 C78 122.66 78 123.32 78 124 C78.66 124.33 79.32 124.66 80 125 C61.823 124.916 46.598 112.862 34.188 100.688 C9.755 75.782 -1.062 41.655 -1.133 7.32 C-1.026 4.658 -0.798 2.519 0 0 Z " fill="#cc0000" transform="translate(429,578)"/> <path d="M0 0 C-0.998 2.506 -2.003 5.008 -3.035 7.5 C-3.374 8.325 -3.713 9.15 -4.062 10 C-4.233 10.413 -4.233 10.413 -5.098 12.5 C-10.44 27.303 -5.858 43.225 0.504 56.899 C3.267 62.655 6.148 68.348 9.066 74.027 C21.552 98.433 25.311 126.655 17.25 153.188 C13.946 162.431 7.548 175.258 -1.242 180.281 C-1.822 180.518 -2.402 180.756 -3 181 C-3 181.66 -3 182.32 -3 183 C-8.843 187.434 -15.877 191.982 -23 194 C-23.99 193.67 -24.98 193.34 -26 193 C-25.166 192.224 -24.332 191.448 -23.473 190.648 C-15.537 183.098 -9.426 175.501 -4 166 C-3.425 165.06 -2.85 164.121 -2.258 163.152 C9.156 142.964 7.9 117.248 2.682 95.426 C0.279 86.879 -3.885 79.105 -7.938 71.25 C-15.757 55.862 -23.194 40.26 -19.234 22.582 C-16.84 15.525 -8.897 0 0 0 Z " fill="#cc0000" transform="translate(420,588)"/> <path d="M0 0 C1.32 0.66 2.64 1.32 4 2 C4 2.66 4 3.32 4 4 C4.598 4.267 5.196 4.534 5.812 4.809 C12.255 8.317 15.692 15.301 18 22 C18.952 25.846 19.226 29.542 19.312 33.5 C19.331 34.052 19.331 34.052 19.426 36.844 C18.755 49.003 12.191 60.218 6.777 70.807 C-1.895 88.201 -6.999 109.128 -1.25 128.312 C0.483 133.073 2.639 137.523 5 142 C5.367 143.325 5.709 144.657 6 146 C1.55 144.602 -0.931 142.484 -4 139 C-4.667 137.667 -5.333 136.333 -6 135 C-6.99 134.67 -7.98 134.34 -9 134 C-10.316 131.742 -10.316 131.742 -11.562 128.875 C-11.976 127.944 -12.39 127.014 -12.816 126.055 C-18.564 111.221 -18.239 91.718 -12 77 C-9.107 70.565 -6.028 64.228 -2.875 57.918 C4.201 43.603 8.467 29.55 4.363 13.512 C3.297 10.517 1.928 7.884 0.25 5.188 C0.044 4.827 0.044 4.827 -1 3 C-0.67 2.01 -0.34 1.02 0 0 Z " fill="#cc0000" transform="translate(634,594)"/> <path d="M0 0 C0.66 0.66 1.32 1.32 2 2 C0.02 7.94 -1.96 13.88 -4 20 C-11.59 20 -19.18 20 -27 20 C-27 19.01 -27 18.02 -27 17 C-20.21 10.779 -12.193 6.11 -4 2 C-3.237 1.617 -2.474 1.234 -1.688 0.84 C-1.131 0.563 -0.574 0.286 0 0 Z " fill="#cc0000" transform="translate(518,620)"/> <path d="M0 0 C9.934 4.627 20.004 9.322 28 17 C28 17.99 28 18.98 28 20 C24.917 20.197 21.834 20.381 18.75 20.562 C17.877 20.619 17.005 20.675 16.105 20.732 C15.261 20.781 14.417 20.829 13.547 20.879 C12.772 20.926 11.997 20.973 11.198 21.022 C8.969 21 7.131 20.63 5 20 C4.734 19.047 4.469 18.095 4.195 17.113 C3.842 15.859 3.489 14.605 3.125 13.312 C2.777 12.071 2.429 10.83 2.07 9.551 C1.184 6.612 0.198 3.822 -1 1 C-0.67 0.67 -0.34 0.34 0 0 Z " fill="#cc0000" transform="translate(535,621)"/> <path d="M0 0 C0.66 0 1.32 0 2 0 C5.586 7.641 6.161 15.024 6.562 23.375 C6.606 24.155 6.649 24.935 6.693 25.738 C7.415 40.233 6.963 54.699 6.255 69.183 C6.125 71.865 6.006 74.548 5.887 77.23 C5.477 86.036 4.907 94.801 3.992 103.57 C3.91 104.361 3.827 105.153 3.742 105.968 C3.364 109.389 2.885 112.675 2 116 C-0.059 116.534 -2.123 117.051 -4.188 117.562 C-5.336 117.853 -6.485 118.143 -7.668 118.441 C-10.885 118.981 -12.897 118.882 -16 118 C-15.385 110.394 -14.21 102.926 -12.959 95.402 C-10.366 79.676 -8.684 63.986 -7.347 48.101 C-6.801 41.62 -6.221 35.143 -5.628 28.666 C-5.443 26.625 -5.266 24.583 -5.089 22.541 C-3.526 5.288 -3.526 5.288 0 0 Z " fill="#cc0000" transform="translate(525,624)"/> <path d="M0 0 C1.314 -0.026 2.627 -0.052 3.98 -0.078 C8.078 0.273 10.442 0.903 13.812 3.25 C14.836 5.73 14.836 5.73 15.188 8.438 C15.253 8.888 15.253 8.888 15.586 11.168 C15.661 11.855 15.735 12.542 15.812 13.25 C15.482 13.415 15.482 13.415 13.812 14.25 C13.812 13.59 13.812 12.93 13.812 12.25 C12.822 12.58 11.832 12.91 10.812 13.25 C7.93 12.141 7.93 12.141 4.688 10.5 C3.612 9.969 2.537 9.438 1.43 8.891 C-1.188 7.25 -1.188 7.25 -2.188 4.25 C-4.125 3.688 -4.125 3.688 -6.188 3.25 C-6.848 2.59 -7.507 1.93 -8.188 1.25 C-6.233 -0.705 -2.659 0.02 0 0 Z " fill="#cc0000" transform="translate(498.1875,643.75)"/> <path d="M0 0 C-1.437 3.55 -3.113 5.071 -6.312 7.125 C-7.072 7.623 -7.831 8.12 -8.613 8.633 C-14.776 12.163 -14.776 12.163 -18.812 11.625 C-19.534 11.419 -20.256 11.212 -21 11 C-20.513 3.454 -20.513 3.454 -18.375 1.562 C-12.215 0.104 -6.293 -0.128 0 0 Z " fill="#cc0000" transform="translate(560,645)"/> <path d="M0 0 C13.557 16.355 13.528 43.682 11.766 63.656 C10.126 76.947 6.094 87.309 -2 98 C-2.722 99.011 -3.444 100.021 -4.188 101.062 C-6.213 103.228 -7.215 103.35 -10 104 C-10.137 104.296 -10.137 104.296 -10.832 105.793 C-15.875 115.323 -32.349 121.456 -42.118 124.704 C-55.45 128.666 -69.157 130.211 -83 131 C-67.303 134 -51.983 135.738 -36 136 C-42.895 141.532 -50.885 141.387 -59.375 141.375 C-60.424 141.375 -61.473 141.375 -62.554 141.375 C-74.293 141.205 -84.911 138.73 -96 135 C-120.465 127.51 -148.193 128.921 -171 141 C-174.307 143.073 -177.164 145.326 -180 148 C-180.632 148.566 -181.263 149.132 -181.914 149.715 C-192.021 159.198 -197.35 172.584 -198.209 186.344 C-198.323 190.605 -198.404 194.863 -198.438 199.125 C-198.444 199.93 -198.451 200.735 -198.458 201.564 C-198.545 222.76 -195.799 243.702 -193.028 264.683 C-187.051 310.439 -192.206 355.261 -197.787 400.736 C-198.787 408.974 -199.655 417.216 -200.379 425.483 C-200.752 429.697 -201.234 433.834 -202 438 C-202.66 438 -203.32 438 -204 438 C-210.06 406.86 -208.433 374.799 -207.361 343.262 C-206.986 332.166 -206.812 321.101 -207 310 C-207.013 309.058 -207.025 308.116 -207.038 307.146 C-207.454 281.253 -209.889 255.221 -213.354 229.564 C-216.893 203.324 -218.717 172.726 -201.941 150.406 C-186.485 131.249 -167.23 122.025 -143 119 C-137.732 118.784 -132.46 118.807 -127.188 118.812 C-126.447 118.812 -125.707 118.811 -124.944 118.81 C-115.86 118.811 -106.933 119.076 -97.918 120.277 C-74.222 123.399 -46.807 119.642 -27.397 104.772 C-9.355 89.909 -1.61 72.308 0.656 49.23 C1.928 32.968 1.571 16.238 0 0 Z " fill="#cc0000" transform="translate(459,681)"/> <path d="M0 0 C-0.012 0.317 -0.012 0.317 -0.07 1.922 C-0.648 31.794 7.355 56.415 27 79 C27.278 79.345 27.278 79.345 28.688 81.09 C31.778 84.897 34.781 87.404 39 90 C39.336 90.25 39.336 90.25 41.039 91.516 C58.038 104.137 83.452 115.165 105 114 C104.67 113.67 104.34 113.34 104 113 C103.534 110.839 103.103 108.671 102.688 106.5 C99.035 89.17 88.825 77.57 76.312 65.5 C68.044 57.301 63.106 48.981 62.625 37.188 C62.751 29.996 64.532 23.879 69.25 18.375 C69.539 18.148 69.539 18.148 71 17 C72.019 20.057 71.986 21.712 71.812 24.875 C71.793 39.426 78.993 50.57 88.652 60.812 C90.205 62.343 91.779 63.852 93.383 65.328 C95 67 95 67 95 69 C95.577 69.224 96.155 69.449 96.75 69.68 C103.721 73.771 109.094 84.218 111.582 91.766 C112.179 94.959 112.211 98.065 112.25 101.312 C112.276 102.587 112.302 103.862 112.328 105.176 C111.957 109.5 110.897 112.141 109 116 C109.63 116.043 109.63 116.043 112.82 116.262 C136.459 118.082 168.415 122.01 185 141 C185 141.66 185 142.32 185 143 C185.639 143.268 186.279 143.536 186.938 143.812 C189 145 189 145 190 148 C190.66 148 191.32 148 192 148 C194.072 150.63 195.707 153.575 197.438 156.438 C197.928 157.221 198.418 158.004 198.924 158.811 C199.401 159.594 199.879 160.377 200.371 161.184 C200.587 161.537 200.587 161.537 201.681 163.326 C209.729 179.646 210.721 198.29 210.562 216.125 C210.559 217.137 210.555 218.149 210.552 219.191 C210.449 239.569 208.305 259.424 205.355 279.56 C200.136 315.464 196.729 350.868 196.75 387.188 C196.751 388.328 196.751 389.468 196.752 390.644 C196.78 404.79 197.145 418.879 198 433 C188.626 421.772 187.438 403.589 185.375 389.375 C185.252 388.529 185.129 387.682 185.002 386.81 C183.453 375.688 182.813 364.651 182.815 353.424 C182.813 351.426 182.794 349.428 182.775 347.43 C182.673 324.897 185.516 302.543 188.5 280.25 C194.405 235.862 194.405 235.862 194.312 215.312 C194.308 213.996 194.304 212.679 194.3 211.323 C194.061 190.644 191.009 170.338 177.488 153.98 C176 152 176 152 175 149 C173.69 148.289 172.352 147.629 171 147 C169.584 145.901 168.189 144.773 166.812 143.625 C153.524 133.188 135.961 131.062 119.75 128.438 C117.978 128.145 116.206 127.851 114.434 127.557 C111.814 127.122 109.195 126.687 106.575 126.255 C100.928 125.324 95.284 124.378 89.645 123.398 C88.973 123.284 88.301 123.169 87.609 123.051 C65.071 119.097 45.761 110.155 28 96 C27.215 95.447 26.43 94.894 25.621 94.324 C25.086 93.887 24.551 93.45 24 93 C24 92.34 24 91.68 24 91 C23.435 90.756 22.871 90.513 22.289 90.262 C8.065 82.422 -1.306 63.856 -6 49 C-10.441 32.941 -11.37 15.941 -3 1 C-1 0 -1 0 0 0 Z " fill="#cc0000" transform="translate(594,683)"/> <path d="M0 0 C0.99 0.33 1.98 0.66 3 1 C-1.136 10.306 -7.085 17.633 -14.859 24.168 C-25.171 32.993 -33.576 42.658 -36.125 56.312 C-36.293 57.196 -36.46 58.079 -36.633 58.988 C-36.754 59.652 -36.875 60.316 -37 61 C-37.99 61 -38.98 61 -40 61 C-44.099 52.399 -45.683 45.203 -42.562 36 C-37.556 24.893 -27.921 18.371 -18 12 C-16.953 11.301 -15.907 10.603 -14.828 9.883 C-7.416 5 -7.416 5 -4 5 C-4 4.34 -4 3.68 -4 3 C-2.188 1.312 -2.188 1.312 0 0 Z " fill="#cc0000" transform="translate(358,737)"/> <path d="M0 0 C7.44 10.617 10.177 28.046 10.188 40.688 C10.2 41.446 10.212 42.205 10.225 42.986 C10.235 46.856 10.195 48.707 8 52 C3.063 47.254 2.423 41.371 1.062 34.938 C-4.087 12.086 -4.087 12.086 -10 7 C-23.171 0.414 -51.534 11.446 -65 15 C-65.741 15.058 -66.482 15.116 -67.246 15.176 C-70.266 16.595 -70.898 20.018 -72 23 C-72.665 25.251 -73.269 27.52 -73.824 29.801 C-73.988 30.473 -74.152 31.146 -74.321 31.839 C-76.7 41.736 -78.847 51.688 -81.03 61.629 C-96.717 132.952 -96.717 132.952 -106.1 155.803 C-106.837 157.602 -107.53 159.418 -108.211 161.238 C-116.056 181.956 -126.34 202.186 -138 221 C-138.563 221.909 -139.125 222.818 -139.705 223.754 C-146.13 234.086 -152.61 244.326 -160 254 C-161.186 255.574 -162.372 257.148 -163.555 258.724 C-164.674 260.211 -165.798 261.694 -166.922 263.176 C-168.4 265.185 -169.799 267.253 -171.141 269.355 C-171.447 269.792 -171.447 269.792 -173 272 C-173.66 272 -174.32 272 -175 272 C-175.251 272.726 -175.503 273.451 -175.762 274.199 C-177.104 277.236 -178.666 279.284 -180.812 281.812 C-181.609 282.763 -182.406 283.713 -183.227 284.691 C-183.666 285.214 -184.106 285.736 -184.56 286.274 C-187.858 290.226 -191.071 294.249 -194.306 298.253 C-195.864 300.175 -197.43 302.089 -199 304 C-199.274 304.337 -199.274 304.337 -200.659 306.041 C-200.924 306.362 -200.924 306.362 -202.27 307.984 C-202.746 308.564 -203.223 309.144 -203.714 309.741 C-205 311 -205 311 -207 311 C-207.66 312.65 -208.32 314.3 -209 316 C-209.66 316 -210.32 316 -211 316 C-211.272 316.594 -211.543 317.187 -211.823 317.799 C-212.979 319.961 -214.153 321.447 -215.836 323.215 C-216.4 323.812 -216.964 324.41 -217.545 325.025 C-218.149 325.656 -218.753 326.287 -219.375 326.938 C-220.645 328.28 -221.914 329.622 -223.184 330.965 C-223.823 331.639 -224.462 332.313 -225.121 333.007 C-227.922 335.978 -230.679 338.989 -233.438 342 C-237.068 345.954 -240.763 349.817 -244.605 353.566 C-246 355 -246 355 -248.312 357.938 C-248.869 358.618 -249.426 359.299 -250 360 C-250.66 360 -251.32 360 -252 360 C-252.031 360.278 -252.031 360.278 -252.188 361.688 C-253.345 364.981 -255.483 366.595 -258 369 C-259.582 370.861 -261.132 372.744 -262.668 374.645 C-263.108 375.092 -263.547 375.539 -264 376 C-264.66 376 -265.32 376 -266 376 C-266 376.66 -266 377.32 -266 378 C-266.66 378 -267.32 378 -268 378 C-268.186 378.66 -268.371 379.32 -268.562 380 C-271.571 386.279 -277.041 391.191 -282 396 C-283 393 -283 393 -282 390 C-281.34 390 -280.68 390 -280 390 C-280.041 389.123 -280.082 388.247 -280.125 387.344 C-279.706 376.144 -270.34 361.164 -263 353 C-262.34 353 -261.68 353 -261 353 C-260.67 351.68 -260.34 350.36 -260 349 C-259.34 349 -258.68 349 -258 349 C-257.67 347.68 -257.34 346.36 -257 345 C-256.34 345 -255.68 345 -255 345 C-254.67 343.68 -254.34 342.36 -254 341 C-253.34 341 -252.68 341 -252 341 C-251.88 340.727 -251.88 340.727 -251.273 339.344 C-249.691 336.43 -247.737 334.055 -245.625 331.5 C-244.854 330.562 -244.083 329.623 -243.289 328.656 C-241.272 326.315 -239.295 324.07 -237 322 C-236.34 322 -235.68 322 -235 322 C-234.74 321.254 -234.479 320.509 -234.211 319.74 C-232.975 316.944 -231.74 315.333 -229.629 313.152 C-228.972 312.465 -228.315 311.777 -227.639 311.068 C-227.296 310.717 -227.296 310.717 -225.562 308.938 C-224.208 307.532 -222.855 306.124 -221.504 304.715 C-220.904 304.097 -220.304 303.48 -219.686 302.844 C-218 301 -218 301 -216.406 298.768 C-215.942 298.184 -215.478 297.601 -215 297 C-214.34 297 -213.68 297 -213 297 C-212.751 296.442 -212.502 295.884 -212.246 295.309 C-210.784 292.6 -209.032 290.43 -207.062 288.062 C-206.256 287.088 -205.449 286.113 -204.617 285.109 C-202.887 283.045 -201.141 280.995 -199.383 278.953 C-189.341 267.272 -180.034 255.158 -172 242 C-171.34 241.01 -170.68 240.02 -170 239 C-169.34 239 -168.68 239 -168 239 C-167.946 238.719 -167.946 238.719 -167.676 237.299 C-166.883 234.6 -165.683 232.597 -164.191 230.211 C-163.614 229.279 -163.037 228.347 -162.443 227.386 C-161.822 226.393 -161.202 225.399 -160.562 224.375 C-154.413 214.395 -148.558 204.319 -143 194 C-142.566 193.205 -142.132 192.41 -141.686 191.59 C-131.81 173.456 -123.299 154.79 -116.25 135.375 C-115.922 134.472 -115.594 133.57 -115.255 132.64 C-108.354 113.091 -103.062 93.071 -97.938 73 C-97.346 70.698 -96.754 68.396 -96.162 66.094 C-95.871 64.96 -95.579 63.827 -95.279 62.659 C-94.698 60.4 -94.116 58.141 -93.534 55.882 C-92.132 50.442 -90.749 44.998 -89.407 39.543 C-89.278 39.028 -89.278 39.028 -88.626 36.423 C-88.148 34.512 -87.678 32.599 -87.22 30.683 C-83.16 14.609 -83.16 14.609 -76.801 10.562 C-72.44 8.548 -67.813 7.256 -63.188 6 C-62.27 5.745 -61.352 5.49 -60.406 5.228 C-11.395 -8.175 -11.395 -8.175 0 0 Z " fill="#cc0000" transform="translate(572,742)"/> <path d="M0 0 C0 0.66 0 1.32 0 2 C0.99 2 1.98 2 3 2 C12.295 19.404 20.656 38.386 15.059 58.359 C12.499 65.556 9.133 72.272 4 78 C3.34 78 2.68 78 2 78 C1.875 78.583 1.751 79.165 1.623 79.766 C0.998 82.007 0.181 83.73 -0.961 85.75 C-1.35 86.441 -1.74 87.132 -2.141 87.844 C-2.548 88.555 -2.955 89.267 -3.375 90 C-3.775 90.712 -4.174 91.423 -4.586 92.156 C-8.712 99.431 -8.712 99.431 -11 102 C-11.66 102 -12.32 102 -13 102 C-13.113 102.278 -13.113 102.278 -13.688 103.688 C-16.41 108.485 -20.945 111.885 -25.188 115.312 C-26.15 116.099 -27.113 116.885 -28.105 117.695 C-29.894 119.12 -31.706 120.517 -33.551 121.867 C-63.752 144.313 -73.2 188.325 -83.378 222.42 C-86.027 231.241 -88.943 239.968 -91.893 248.692 C-93.794 254.323 -95.614 259.961 -97.295 265.661 C-98.212 268.705 -99.219 271.715 -100.236 274.727 C-101.035 277.104 -101.808 279.488 -102.578 281.875 C-107.392 296.69 -112.655 311.225 -120 325 C-120.66 325 -121.32 325 -122 325 C-122.062 325.66 -122.124 326.32 -122.188 327 C-123.533 331.969 -126.365 336.365 -130 340 C-131.037 341.321 -132.057 342.655 -133.062 344 C-133.59 344.701 -134.117 345.402 -134.66 346.125 C-136 348 -136 348 -137 350 C-137.66 350 -138.32 350 -139 350 C-139.66 351.65 -140.32 353.3 -141 355 C-141.66 355 -142.32 355 -143 355 C-143.268 355.639 -143.536 356.279 -143.812 356.938 C-145 359 -145 359 -148 360 C-148.33 360.99 -148.66 361.98 -149 363 C-149.99 362.67 -150.98 362.34 -152 362 C-151.567 361.319 -151.134 360.639 -150.688 359.938 C-147.993 355.247 -146.106 350.269 -144.125 345.25 C-142.748 341.778 -141.27 338.383 -139.688 335 C-136.373 327.809 -133.61 320.403 -130.774 313.015 C-128.576 307.294 -126.322 301.659 -123.688 296.125 C-120.199 288.558 -117.651 280.642 -114.959 272.767 C-113.913 269.749 -112.833 266.744 -111.75 263.738 C-108.574 254.869 -105.554 245.947 -102.527 237.026 C-101.478 233.937 -100.427 230.848 -99.375 227.759 C-96.308 218.751 -93.244 209.742 -90.22 200.719 C-89.084 197.332 -87.942 193.947 -86.799 190.562 C-86.278 189.014 -85.76 187.465 -85.246 185.915 C-78.464 165.484 -70.215 144.424 -56 128 C-55.658 127.568 -55.658 127.568 -53.926 125.383 C-52 123 -52 123 -49.438 120.5 C-47 118 -47 118 -45.312 115.188 C-44.879 114.466 -44.446 113.744 -44 113 C-43.34 113 -42.68 113 -42 113 C-41.866 112.459 -41.732 111.917 -41.594 111.359 C-41.166 109.659 -40.727 107.961 -40.281 106.266 C-40.023 105.27 -39.766 104.275 -39.5 103.25 C-39.242 102.265 -38.984 101.28 -38.719 100.266 C-36.623 90.742 -36.975 81.439 -37.215 71.734 C-37.347 60.927 -37.347 60.927 -34 56 C-33.835 55.67 -33.835 55.67 -33 54 C-27.475 51.308 -22.944 50.609 -17 52 C-16.67 52.99 -16.34 53.98 -16 55 C-19.63 55.99 -23.26 56.98 -27 58 C-27.76 62.765 -28.141 67.369 -28.211 72.191 C-28.239 73.563 -28.268 74.935 -28.297 76.307 C-28.338 78.423 -28.375 80.54 -28.401 82.656 C-28.535 92.492 -29.555 101.422 -32 111 C-31.381 110.34 -30.763 109.68 -30.125 109 C-28 107 -28 107 -26 107 C-25.879 106.722 -25.879 106.722 -25.266 105.312 C-23.741 102.526 -21.842 100.391 -19.75 98 C-15.096 92.429 -11.941 86.609 -9 80 C-11.64 80.66 -14.28 81.32 -17 82 C-17.33 80.68 -17.66 79.36 -18 78 C-16.891 76.219 -16.891 76.219 -15.25 74.5 C-14.693 73.889 -14.136 73.278 -13.562 72.648 C-13.047 72.104 -12.531 71.56 -12 71 C-7.735 66.43 -7.004 60.885 -6.996 54.805 C-7.366 48.292 -8.354 42.953 -11 37 C-11.33 36.01 -11.66 35.02 -12 34 C-14.016 33.248 -16.042 32.518 -18.102 31.895 C-21.628 30.806 -25.093 29.565 -28.562 28.312 C-29.781 27.876 -30.999 27.439 -32.254 26.988 C-33.16 26.662 -34.066 26.336 -35 26 C-35 25.34 -35 24.68 -35 24 C-11.677 25.277 -11.677 25.277 -5 31 C-1.556 35.501 0 39.524 1.25 44.938 C1.336 45.276 1.336 45.276 1.773 46.99 C3.296 53.291 3.395 59.075 2 65.438 C1.814 66.302 1.629 67.167 1.438 68.059 C1.365 68.379 1.365 68.379 1 70 C8.702 55.622 8.564 41.699 4.168 26.305 C3 23 3 23 1.363 19.758 C0 17 0 17 0 14 C-0.99 13.67 -1.98 13.34 -3 13 C-3.33 12.505 -3.33 12.505 -5 10 C-12.503 7.585 -20.935 7.473 -28.75 6.938 C-29.316 6.896 -29.316 6.896 -32.183 6.688 C-35.455 6.452 -38.727 6.224 -42 6 C-42.438 5.97 -42.438 5.97 -44.655 5.816 C-48.769 5.532 -52.884 5.258 -57 5 C-57 4.34 -57 3.68 -57 3 C-52.113 1.146 -47.532 0.432 -42.375 -0.062 C-41.966 -0.104 -41.966 -0.104 -39.894 -0.312 C-7.121 -3.452 -7.121 -3.452 0 0 Z " fill="#cc0000" transform="translate(560,766)"/> <path d="M0 0 C7.968 2.975 7.968 2.975 10.355 7.246 C10.761 15.259 4.935 22.247 -0.109 27.883 C-1.253 29.04 -2.446 30.147 -3.645 31.246 C-4.201 31.844 -4.758 32.442 -5.332 33.059 C-6.645 34.246 -6.645 34.246 -8.645 34.246 C-8.851 34.844 -9.057 35.442 -9.27 36.059 C-11.154 39.056 -13.456 39.86 -16.645 41.246 C-17.895 39.684 -17.895 39.684 -18.645 37.246 C-16.066 32.046 -12.838 27.836 -9.02 23.496 C-1.645 15.015 -1.645 15.015 -1.645 9.246 C-5.605 7.596 -9.565 5.946 -13.645 4.246 C-13.315 2.926 -12.985 1.606 -12.645 0.246 C-8.588 -1.782 -4.226 -1.205 0 0 Z " fill="#cc0000" transform="translate(597.64453125,769.75390625)"/> <path d="M0 0 C0.33 0.495 0.33 0.495 2 3 C-1.271 5.054 -4.443 6.714 -8.062 8.062 C-8.899 8.383 -9.736 8.704 -10.598 9.035 C-19.652 11.603 -28.685 12.362 -38.062 12.312 C-38.6 12.311 -38.6 12.311 -41.319 12.304 C-52.409 12.161 -64.751 11.64 -75 7 C-75 6.67 -75 6.34 -75 6 C-73.993 6.012 -72.986 6.023 -71.949 6.035 C-67.299 6.074 -62.65 6.049 -58 6 C-57.289 5.994 -56.578 5.988 -55.846 5.982 C-43.069 5.802 -30.601 3.85 -18.029 1.728 C-17.354 1.615 -16.678 1.503 -15.983 1.387 C-14.131 1.078 -12.281 0.761 -10.431 0.443 C-6.867 -0.017 -3.586 -0.285 0 0 Z " fill="#cc0000" transform="translate(689,812)"/> <path d="M0 0 C2 1.312 2 1.312 4 3 C4 3.99 4 4.98 4 6 C4.66 6 5.32 6 6 6 C8.034 9.73 9 11.669 9 16 C9.66 16 10.32 16 11 16 C11.495 18.64 11.495 18.64 14 32 C15.155 30.515 16.31 29.03 17.5 27.5 C23.548 19.972 29.499 13.703 38 9 C37.418 12.374 36.393 13.642 34 16 C33.049 17.742 32.16 19.518 31.312 21.312 C29.042 25.982 26.61 30.513 24 35 C22.662 37.331 21.331 39.665 20 42 C19.484 42.895 18.969 43.789 18.438 44.711 C3.971 71.522 -1.921 104.303 6 134 C6.515 135.247 7.051 136.485 7.605 137.715 C9 141 9 141 9 145 C9.66 145 10.32 145 11 145 C14.054 150.375 14.054 150.375 13.832 152.938 C12.74 155.644 11.195 157.203 9.125 159.25 C8.426 159.956 7.728 160.663 7.008 161.391 C5 163 5 163 2 163 C1.225 161.648 0.455 160.294 -0.312 158.938 C-0.742 158.183 -1.171 157.429 -1.613 156.652 C-15.489 130.113 -16.58 99.769 -7.75 71.5 C-5.481 64.927 -2.656 58.753 0.449 52.535 C3.485 45.614 4.338 39.332 4.25 31.812 C4.245 30.986 4.239 30.16 4.234 29.308 C4.116 21.637 3.88 13.568 0.93 6.398 C0 4 0 4 0 0 Z " fill="#cc0000" transform="translate(327,895)"/> <path d="M0 0 C0.66 0 1.32 0 2 0 C1.867 0.724 1.734 1.449 1.598 2.195 C1.421 3.162 1.244 4.129 1.062 5.125 C0.888 6.076 0.714 7.028 0.535 8.008 C0.359 8.995 0.182 9.983 0 11 C-0.18 11.923 -0.361 12.846 -0.547 13.797 C-2.213 25.577 -1.843 37.06 3 48 C3.784 49.784 4.568 51.568 5.352 53.352 C6.682 56.378 8.013 59.404 9.349 62.428 C12.6 69.862 15.169 77.081 17 85 C17.284 86.12 17.567 87.24 17.859 88.395 C21.052 101.812 21.796 114.426 19 128 C18.866 128.786 18.732 129.573 18.594 130.383 C16.748 140.287 12.104 149.4 7 158 C7.492 158.414 7.984 158.828 8.491 159.255 C10.672 161.777 10.194 164.061 10.01 167.256 C9.977 167.668 9.977 167.668 9.812 169.75 C9.756 170.603 9.699 171.455 9.64 172.333 C9.095 179.942 8.095 187.452 7 195 C5.501 205.743 4.716 216.145 5 227 C2 225 2 225 1.086 221.297 C0.836 219.783 0.599 218.268 0.375 216.75 C0.254 215.998 0.133 215.247 0.008 214.473 C-0.22 213.053 -0.443 211.632 -0.659 210.21 C-0.918 208.533 -1.216 206.863 -1.532 205.196 C-2.054 201.633 -2.13 198.227 -2.133 194.625 C-2.134 193.937 -2.135 193.25 -2.136 192.542 C-2.136 191.096 -2.135 189.651 -2.13 188.205 C-2.125 186.006 -2.13 183.808 -2.137 181.609 C-2.136 180.198 -2.135 178.786 -2.133 177.375 C-2.132 176.104 -2.131 174.833 -2.129 173.523 C-2.009 170.256 -1.621 167.206 -1 164 C-1.811 164.543 -2.622 165.085 -3.457 165.645 C-10.483 170.184 -16.669 173.397 -25 175 C-23.384 171.768 -21.682 169.632 -18.875 167.438 C-6.568 157.243 0.438 141.725 2 126 C3.39 103.104 -0.01 83.373 -8 62 C-8.252 61.313 -8.504 60.625 -8.764 59.917 C-12.342 50.359 -17.352 41.694 -22.562 32.938 C-23.2 31.866 -23.837 30.794 -24.494 29.69 C-27.253 25.152 -29.951 20.881 -33.527 16.941 C-34.343 15.971 -35.159 15 -36 14 C-35.67 13.01 -35.34 12.02 -35 11 C-35 11.66 -35 12.32 -35 13 C-34.443 13.082 -33.886 13.165 -33.312 13.25 C-30.263 14.239 -28.348 15.848 -26 18 C-26 18.66 -26 19.32 -26 20 C-25.423 20.247 -24.845 20.495 -24.25 20.75 C-21.671 22.183 -19.939 23.784 -18 26 C-18 26.66 -18 27.32 -18 28 C-17.381 28.289 -16.763 28.577 -16.125 28.875 C-14 30 -14 30 -12 32 C-11.918 30.783 -11.835 29.566 -11.75 28.312 C-10.523 17.77 -7.272 7.935 0 0 Z " fill="#cc0000" transform="translate(718,896)"/> <path d="M0 0 C1.362 3.385 0.655 5.81 -0.336 9.226 C-5.982 28.805 -4.533 52.773 2.275 71.948 C3.019 74.053 3.671 76.174 4.312 78.312 C7.618 88.263 12.741 97.711 19.793 105.449 C21 107 21 107 21 109 C21.598 109.082 22.196 109.165 22.812 109.25 C25.597 110.205 26.433 111.571 28 114 C24.213 114 22.166 112.731 18.812 111 C17.726 110.443 16.639 109.886 15.52 109.312 C14.688 108.879 13.857 108.446 13 108 C13 107.34 13 106.68 13 106 C12.68 105.938 12.68 105.938 11.062 105.625 C10.382 105.419 9.701 105.213 9 105 C8.835 104.67 8.835 104.67 8 103 C7.689 102.847 7.689 102.847 6.117 102.07 C2.533 100.258 0.46 97.104 -2 94 C-2.266 93.665 -2.266 93.665 -3.613 91.973 C-16.022 75.93 -19.462 56.682 -17.723 36.836 C-15.986 24.298 -11.008 12.811 -3 3 C-2.34 3 -1.68 3 -1 3 C-0.67 2.01 -0.34 1.02 0 0 Z " fill="#cc0000" transform="translate(552,938)"/> <path d="M0 0 C4.668 1.382 6.539 3.504 9.312 7.438 C10.01 8.406 10.707 9.374 11.426 10.371 C13 13 13 13 13 16 C13.66 16 14.32 16 15 16 C22.792 34.706 24.84 54.428 17.688 73.82 C16.534 76.593 15.334 79.31 14 82 C13.34 82 12.68 82 12 82 C11.903 82.741 11.807 83.482 11.707 84.246 C10.906 87.365 9.861 88.722 7.688 91.062 C7.37 91.407 7.37 91.407 5.762 93.152 C5.18 93.762 4.599 94.372 4 95 C3.34 95.701 2.68 96.402 2 97.125 C1.34 97.744 0.68 98.362 0 99 C-0.442 99.437 -0.884 99.874 -1.34 100.324 C-6.727 105.343 -13.233 109.138 -20 112 C-20.99 111.67 -21.98 111.34 -23 111 C-21.625 109 -21.625 109 -20 107 C-19.34 107 -18.68 107 -18 107 C-18 106.34 -18 105.68 -18 105 C-16.356 103.311 -14.686 101.647 -13 100 C-9.276 95.552 -9.276 95.552 -8 93 C-7.34 93 -6.68 93 -6 93 C-5.897 92.278 -5.794 91.556 -5.688 90.812 C-5 88 -5 88 -3.645 85.781 C7.871 66.305 10.231 39.56 5.777 17.684 C4.482 13.213 2.806 8.914 1.023 4.617 C0 2 0 2 0 0 Z " fill="#cc0000" transform="translate(500,943)"/> </svg> </div>
+      <h1><em>SHH</em> ROOM</h1>
+      <p>Selecciona tu usuario</p>
+    </div>
+    <div id="ls1"><div class="user-cards" id="ucards"></div></div>
+    <div id="ls2" style="display:none;">
+      <div class="pin-hdr">
+        <div class="pnom" id="pin-nom"></div>
+        <div class="psub">Introduce tu PIN</div>
+      </div>
+      <div class="pin-dots" id="pin-dots">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+      </div>
+      <div class="pin-err" id="pin-err"></div>
+      <div class="pin-pad">
+        <button class="pkey" onclick="pd('1')">1</button>
+        <button class="pkey" onclick="pd('2')">2</button>
+        <button class="pkey" onclick="pd('3')">3</button>
+        <button class="pkey" onclick="pd('4')">4</button>
+        <button class="pkey" onclick="pd('5')">5</button>
+        <button class="pkey" onclick="pd('6')">6</button>
+        <button class="pkey" onclick="pd('7')">7</button>
+        <button class="pkey" onclick="pd('8')">8</button>
+        <button class="pkey" onclick="pd('9')">9</button>
+        <button class="pkey sec" onclick="pback()">⌫</button>
+        <button class="pkey" onclick="pd('0')">0</button>
+        <button class="pkey sec" onclick="pstep(1)" style="font-size:.72rem;">↩ Volver</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="hdr">
+  <div class="hdr-logo">
+    <span class="hdr-logo-img"><svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1536" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"> <path d="M0 0 C2.234 1.82 3.738 3.172 4.744 5.908 C4.794 6.468 4.845 7.027 4.896 7.604 C3.988 7.205 3.079 6.807 2.143 6.396 C-23.925 -4.721 -49.825 -4.091 -76.104 5.604 C-89.229 10.94 -99.884 18.944 -110.104 28.604 C-110.832 29.267 -111.56 29.931 -112.311 30.615 C-132.952 50.141 -143.984 76.492 -153.142 102.853 C-154.403 106.46 -155.74 110.034 -157.104 113.604 C-157.385 114.35 -157.666 115.096 -157.955 115.865 C-167.625 141.396 -182.039 161.382 -200.354 181.354 C-212.882 195.067 -223.872 209.051 -223.572 228.467 C-222.769 246.178 -214.034 259.976 -204.932 274.525 C-198.341 285.623 -194.983 296.557 -197.717 309.51 C-203.457 327.11 -218.485 337.13 -233.318 346.732 C-237.029 349.225 -240.483 351.969 -243.928 354.814 C-245.666 356.244 -247.469 357.594 -249.291 358.916 C-256.382 365.692 -261.212 374.423 -261.584 384.314 C-261.655 391.724 -261 396.52 -256.416 402.686 C-255.104 404.604 -255.104 404.604 -255.104 407.604 C-262.535 404.036 -266.932 399.079 -269.916 391.354 C-273.225 380.903 -273.217 371.542 -268.104 361.604 C-260.621 350.22 -250.238 342.893 -239.133 335.393 C-215.636 319.505 -215.636 319.505 -212.545 308.209 C-209.628 290.989 -216.761 279.983 -225.285 265.834 C-235.175 249.297 -240.402 232.362 -235.854 213.104 C-231.447 198.111 -222.667 186.672 -212.438 175.151 C-211.194 173.708 -210.026 172.201 -208.865 170.689 C-208.284 170.001 -207.702 169.313 -207.104 168.604 C-206.444 168.604 -205.784 168.604 -205.104 168.604 C-204.853 167.871 -204.603 167.139 -204.346 166.385 C-202.997 163.365 -201.45 161.544 -199.229 159.104 C-184.073 140.941 -176.678 119.198 -170.085 96.888 C-162.709 71.943 -154.216 48.635 -137.104 28.604 C-136.89 28.349 -136.89 28.349 -135.808 27.059 C-104.798 -9.673 -41.739 -31.855 0 0 Z " fill="#cc0000" transform="translate(556.103515625,390.396484375)"/> <path d="M0 0 C13.69 3.057 27.094 9.008 36.426 19.82 C36.426 20.48 36.426 21.14 36.426 21.82 C36.988 22.032 37.55 22.243 38.129 22.461 C41.2 24.278 43.067 26.761 45.176 29.57 C45.613 30.148 46.049 30.726 46.5 31.321 C52.793 39.827 57.688 49.058 62.18 58.613 C62.524 59.345 62.868 60.077 63.222 60.832 C66.773 68.457 70.02 76.202 73.238 83.972 C96.085 139.054 96.085 139.054 110.379 159.192 C113.426 163.526 113.426 163.526 113.426 166.82 C114.086 166.82 114.746 166.82 115.426 166.82 C115.426 167.81 115.426 168.8 115.426 169.82 C116.416 170.15 117.406 170.48 118.426 170.82 C119.833 172.38 119.833 172.38 121.281 174.398 C121.817 175.141 122.354 175.883 122.906 176.648 C123.188 177.048 123.188 177.048 124.613 179.07 C124.903 179.478 124.903 179.478 126.371 181.543 C140.126 201.054 150.713 221.464 146.922 246.094 C144.521 257.643 139.812 267.281 133.801 277.32 C127.211 288.433 124.008 297.798 126.426 310.82 C129.895 322.451 139.804 331.639 147.964 340.27 C150.161 342.6 152.33 344.954 154.488 347.32 C154.834 347.697 154.834 347.697 156.586 349.602 C161.426 355.438 161.426 355.438 161.426 359.82 C162.086 359.82 162.746 359.82 163.426 359.82 C167.695 369.852 170.957 379.813 167.516 390.699 C166.588 392.824 165.607 394.827 164.426 396.82 C163.766 396.82 163.106 396.82 162.426 396.82 C162.199 397.439 161.972 398.058 161.738 398.695 C160.046 401.434 158.433 401.871 155.426 402.82 C156.329 397.146 156.329 397.146 156.941 395.094 C158.943 385.699 158.335 375.14 153.426 366.82 C147.503 357.711 140.712 349.643 132.465 342.59 C120.991 332.633 112.039 321.394 110.551 305.883 C110.077 294.93 112.496 286.547 117.426 276.82 C118.086 276.82 118.746 276.82 119.426 276.82 C119.534 276.086 119.642 275.351 119.754 274.594 C120.468 271.648 121.48 269.937 123.176 267.445 C131.882 253.494 134.866 235.895 131.426 219.82 C128.143 208.494 122.204 198.137 114.895 188.957 C113.426 186.82 113.426 186.82 113.426 183.82 C112.824 183.56 112.222 183.3 111.602 183.032 C109.247 181.72 108.196 180.584 106.613 178.426 C106.101 177.728 105.589 177.031 105.062 176.313 C104.792 175.932 104.792 175.932 103.426 174.008 C102.857 173.212 102.288 172.416 101.702 171.595 C95.251 162.392 89.798 152.679 84.426 142.82 C83.552 141.25 82.678 139.68 81.805 138.109 C75.018 125.746 69.672 112.896 64.426 99.82 C62.214 94.316 59.997 88.812 57.778 83.311 C56.832 80.96 55.893 78.606 54.954 76.252 C44.159 49.309 44.159 49.309 36.676 37.57 C36.272 36.928 35.868 36.286 35.451 35.625 C31.07 28.905 24.737 19.476 17.426 15.82 C17.426 15.16 17.426 14.5 17.426 13.82 C16.766 13.593 16.106 13.367 15.426 13.133 C12.967 12.057 10.975 10.951 8.738 9.508 C4.153 6.562 -0.669 4.183 -5.574 1.82 C-2.574 -0.18 -2.574 -0.18 0 0 Z " fill="#cc0000" transform="translate(574.57421875,392.1796875)"/> <path d="M0 0 C4.651 3.373 4.651 3.373 5.68 6.25 C5.744 6.827 5.809 7.405 5.875 8 C5.553 7.903 5.553 7.903 3.926 7.414 C-13.081 2.513 -29.061 1.171 -45.125 10 C-63.205 21.295 -69.361 38.109 -74.125 58 C-74.868 61.326 -75.589 64.655 -76.306 67.987 C-84.347 105.336 -99.384 134.33 -132.066 155.945 C-137.156 159.117 -142.337 162.124 -147.52 165.141 C-148.001 165.422 -148.001 165.422 -150.44 166.848 C-152.347 167.962 -154.257 169.069 -156.172 170.169 C-168.113 177.129 -178.481 184.522 -183.125 198 C-185.931 208.887 -183.012 221.298 -177.469 230.855 C-175.426 233.958 -173.294 236.985 -171.125 240 C-150.443 269.119 -150.443 269.119 -152.125 288 C-153.381 295.04 -156.214 301.705 -161.125 307 C-162.115 307 -163.105 307 -164.125 307 C-163.968 305.849 -163.81 304.698 -163.648 303.512 C-160.933 281.533 -168.293 266.661 -181.327 249.39 C-191.185 236.291 -200.445 220.124 -199.441 203.066 C-197.204 188.451 -188.962 177.998 -177.375 169.312 C-172.086 165.565 -166.635 162.075 -161.188 158.562 C-140.062 144.924 -119.621 128.992 -108.125 106 C-107.465 106 -106.805 106 -106.125 106 C-105.995 105.269 -105.865 104.538 -105.732 103.785 C-105.165 101.183 -104.408 98.912 -103.418 96.445 C-103.081 95.591 -102.743 94.738 -102.396 93.858 C-102.038 92.956 -101.681 92.054 -101.312 91.125 C-97.275 80.693 -94.237 70.373 -91.953 59.422 C-87.262 36.94 -80.461 17.115 -61.062 3.062 C-56.275 -0.046 -51.364 -2.733 -46.125 -5 C-45.765 -5.16 -45.765 -5.16 -43.941 -5.973 C-29.108 -11.5 -12.735 -8.729 0 0 Z " fill="#cc0000" transform="translate(554.125,422)"/> <path d="M0 0 C15.122 8.249 21.208 23.787 25.875 39.625 C26.209 40.728 26.543 41.831 26.887 42.967 C28.41 48.029 29.875 53.101 31.246 58.207 C39.66 89.302 52.46 117.647 75.273 140.875 C76.75 142.688 76.75 142.688 76.75 145.688 C77.32 145.904 77.89 146.121 78.477 146.344 C89.63 152.936 96.914 171.026 100.75 182.688 C103.129 192.008 102.901 202.952 98.75 211.688 C98.398 212.445 98.046 213.203 97.684 213.984 C94.404 220.435 89.764 227.035 82.75 229.688 C81.76 229.357 80.77 229.028 79.75 228.688 C80.16 227.926 80.57 227.164 80.992 226.379 C81.531 225.346 82.07 224.314 82.625 223.25 C83.159 222.241 83.692 221.231 84.242 220.191 C87.319 213.042 88.116 206.043 88.062 198.312 C88.059 197.484 88.056 196.655 88.052 195.802 C87.939 189.419 87.092 183.663 84.75 177.688 C84.317 176.578 83.884 175.468 83.438 174.324 C81.757 170.462 79.535 167.145 77.062 163.75 C76.622 163.139 76.181 162.528 75.727 161.898 C72.663 157.73 69.38 154.025 65.609 150.473 C63.714 148.653 62.017 146.748 60.312 144.75 C57.807 141.819 55.17 139.155 52.375 136.5 C28.893 113.217 19.501 79.842 13.285 48.461 C10.083 32.479 6.2 17.937 -6.25 6.688 C-9.793 4.386 -13.414 2.451 -17.25 0.688 C-17.25 -0.303 -17.25 -1.293 -17.25 -2.312 C-11.178 -4.337 -5.63 -2.735 0 0 Z " fill="#cc0000" transform="translate(585.25,434.3125)"/> <path d="M0 0 C-0.33 0.66 -0.66 1.32 -1 2 C-3.722 2.382 -6.389 2.656 -9.125 2.875 C-17.774 3.708 -25.687 5.394 -34 8 C-35.23 8.383 -36.46 8.766 -37.727 9.16 C-44.909 11.552 -50.99 14.374 -57 19 C-57.66 18.67 -58.32 18.34 -59 18 C-57.381 16.327 -55.755 14.662 -54.125 13 C-53.22 12.072 -52.315 11.144 -51.383 10.188 C-49 8 -49 8 -47 8 C-47 7.34 -47 6.68 -47 6 C-44.795 4.701 -42.587 3.411 -40.375 2.125 C-39.758 1.76 -39.14 1.395 -38.504 1.02 C-25.981 -6.231 -12.979 -6.489 0 0 Z " fill="#cc0000" transform="translate(607,529)"/> <path d="M0 0 C0.33 0.165 0.33 0.165 2 1 C7.319 31.017 2.629 66.99 -14 93 C-14.66 93 -15.32 93 -16 93 C-16.106 93.741 -16.211 94.482 -16.32 95.246 C-19.709 108.976 -39.733 124.261 -51.049 131.267 C-58.383 135.616 -65.701 138.083 -74 140 C-74.015 140.589 -74.029 141.178 -74.044 141.785 C-74.12 144.503 -74.216 147.22 -74.312 149.938 C-74.335 150.864 -74.358 151.79 -74.381 152.744 C-74.621 158.964 -75.687 164.218 -78 170 C-78.99 169.67 -79.98 169.34 -81 169 C-81.049 164.64 -81.086 160.28 -81.11 155.92 C-81.12 154.437 -81.134 152.954 -81.151 151.471 C-81.175 149.339 -81.186 147.207 -81.195 145.074 C-81.206 143.791 -81.216 142.508 -81.227 141.186 C-81 138 -81 138 -79 135 C-76.934 134.043 -76.934 134.043 -74.438 133.188 C-69.717 131.427 -65.887 129.112 -61.812 126.172 C-60 125 -60 125 -58 125 C-57.763 124.423 -57.526 123.845 -57.281 123.25 C-55.725 120.517 -53.913 119.016 -51.5 117 C-18.378 87.781 -4.986 42.381 0 0 Z " fill="#cc0000" transform="translate(620,566)"/> <path d="M0 0 C2 1 2 1 2.667 2.999 C2.765 3.436 2.765 3.436 3.262 5.645 C3.49 6.622 3.718 7.599 3.953 8.606 C4.195 9.664 4.438 10.722 4.688 11.812 C12.36 43.766 26.037 71.673 47 97 C47.477 97.612 47.954 98.225 48.445 98.855 C55.948 108.224 67.136 116.877 78 122 C78 122.66 78 123.32 78 124 C78.66 124.33 79.32 124.66 80 125 C61.823 124.916 46.598 112.862 34.188 100.688 C9.755 75.782 -1.062 41.655 -1.133 7.32 C-1.026 4.658 -0.798 2.519 0 0 Z " fill="#cc0000" transform="translate(429,578)"/> <path d="M0 0 C-0.998 2.506 -2.003 5.008 -3.035 7.5 C-3.374 8.325 -3.713 9.15 -4.062 10 C-4.233 10.413 -4.233 10.413 -5.098 12.5 C-10.44 27.303 -5.858 43.225 0.504 56.899 C3.267 62.655 6.148 68.348 9.066 74.027 C21.552 98.433 25.311 126.655 17.25 153.188 C13.946 162.431 7.548 175.258 -1.242 180.281 C-1.822 180.518 -2.402 180.756 -3 181 C-3 181.66 -3 182.32 -3 183 C-8.843 187.434 -15.877 191.982 -23 194 C-23.99 193.67 -24.98 193.34 -26 193 C-25.166 192.224 -24.332 191.448 -23.473 190.648 C-15.537 183.098 -9.426 175.501 -4 166 C-3.425 165.06 -2.85 164.121 -2.258 163.152 C9.156 142.964 7.9 117.248 2.682 95.426 C0.279 86.879 -3.885 79.105 -7.938 71.25 C-15.757 55.862 -23.194 40.26 -19.234 22.582 C-16.84 15.525 -8.897 0 0 0 Z " fill="#cc0000" transform="translate(420,588)"/> <path d="M0 0 C1.32 0.66 2.64 1.32 4 2 C4 2.66 4 3.32 4 4 C4.598 4.267 5.196 4.534 5.812 4.809 C12.255 8.317 15.692 15.301 18 22 C18.952 25.846 19.226 29.542 19.312 33.5 C19.331 34.052 19.331 34.052 19.426 36.844 C18.755 49.003 12.191 60.218 6.777 70.807 C-1.895 88.201 -6.999 109.128 -1.25 128.312 C0.483 133.073 2.639 137.523 5 142 C5.367 143.325 5.709 144.657 6 146 C1.55 144.602 -0.931 142.484 -4 139 C-4.667 137.667 -5.333 136.333 -6 135 C-6.99 134.67 -7.98 134.34 -9 134 C-10.316 131.742 -10.316 131.742 -11.562 128.875 C-11.976 127.944 -12.39 127.014 -12.816 126.055 C-18.564 111.221 -18.239 91.718 -12 77 C-9.107 70.565 -6.028 64.228 -2.875 57.918 C4.201 43.603 8.467 29.55 4.363 13.512 C3.297 10.517 1.928 7.884 0.25 5.188 C0.044 4.827 0.044 4.827 -1 3 C-0.67 2.01 -0.34 1.02 0 0 Z " fill="#cc0000" transform="translate(634,594)"/> <path d="M0 0 C0.66 0.66 1.32 1.32 2 2 C0.02 7.94 -1.96 13.88 -4 20 C-11.59 20 -19.18 20 -27 20 C-27 19.01 -27 18.02 -27 17 C-20.21 10.779 -12.193 6.11 -4 2 C-3.237 1.617 -2.474 1.234 -1.688 0.84 C-1.131 0.563 -0.574 0.286 0 0 Z " fill="#cc0000" transform="translate(518,620)"/> <path d="M0 0 C9.934 4.627 20.004 9.322 28 17 C28 17.99 28 18.98 28 20 C24.917 20.197 21.834 20.381 18.75 20.562 C17.877 20.619 17.005 20.675 16.105 20.732 C15.261 20.781 14.417 20.829 13.547 20.879 C12.772 20.926 11.997 20.973 11.198 21.022 C8.969 21 7.131 20.63 5 20 C4.734 19.047 4.469 18.095 4.195 17.113 C3.842 15.859 3.489 14.605 3.125 13.312 C2.777 12.071 2.429 10.83 2.07 9.551 C1.184 6.612 0.198 3.822 -1 1 C-0.67 0.67 -0.34 0.34 0 0 Z " fill="#cc0000" transform="translate(535,621)"/> <path d="M0 0 C0.66 0 1.32 0 2 0 C5.586 7.641 6.161 15.024 6.562 23.375 C6.606 24.155 6.649 24.935 6.693 25.738 C7.415 40.233 6.963 54.699 6.255 69.183 C6.125 71.865 6.006 74.548 5.887 77.23 C5.477 86.036 4.907 94.801 3.992 103.57 C3.91 104.361 3.827 105.153 3.742 105.968 C3.364 109.389 2.885 112.675 2 116 C-0.059 116.534 -2.123 117.051 -4.188 117.562 C-5.336 117.853 -6.485 118.143 -7.668 118.441 C-10.885 118.981 -12.897 118.882 -16 118 C-15.385 110.394 -14.21 102.926 -12.959 95.402 C-10.366 79.676 -8.684 63.986 -7.347 48.101 C-6.801 41.62 -6.221 35.143 -5.628 28.666 C-5.443 26.625 -5.266 24.583 -5.089 22.541 C-3.526 5.288 -3.526 5.288 0 0 Z " fill="#cc0000" transform="translate(525,624)"/> <path d="M0 0 C1.314 -0.026 2.627 -0.052 3.98 -0.078 C8.078 0.273 10.442 0.903 13.812 3.25 C14.836 5.73 14.836 5.73 15.188 8.438 C15.253 8.888 15.253 8.888 15.586 11.168 C15.661 11.855 15.735 12.542 15.812 13.25 C15.482 13.415 15.482 13.415 13.812 14.25 C13.812 13.59 13.812 12.93 13.812 12.25 C12.822 12.58 11.832 12.91 10.812 13.25 C7.93 12.141 7.93 12.141 4.688 10.5 C3.612 9.969 2.537 9.438 1.43 8.891 C-1.188 7.25 -1.188 7.25 -2.188 4.25 C-4.125 3.688 -4.125 3.688 -6.188 3.25 C-6.848 2.59 -7.507 1.93 -8.188 1.25 C-6.233 -0.705 -2.659 0.02 0 0 Z " fill="#cc0000" transform="translate(498.1875,643.75)"/> <path d="M0 0 C-1.437 3.55 -3.113 5.071 -6.312 7.125 C-7.072 7.623 -7.831 8.12 -8.613 8.633 C-14.776 12.163 -14.776 12.163 -18.812 11.625 C-19.534 11.419 -20.256 11.212 -21 11 C-20.513 3.454 -20.513 3.454 -18.375 1.562 C-12.215 0.104 -6.293 -0.128 0 0 Z " fill="#cc0000" transform="translate(560,645)"/> <path d="M0 0 C13.557 16.355 13.528 43.682 11.766 63.656 C10.126 76.947 6.094 87.309 -2 98 C-2.722 99.011 -3.444 100.021 -4.188 101.062 C-6.213 103.228 -7.215 103.35 -10 104 C-10.137 104.296 -10.137 104.296 -10.832 105.793 C-15.875 115.323 -32.349 121.456 -42.118 124.704 C-55.45 128.666 -69.157 130.211 -83 131 C-67.303 134 -51.983 135.738 -36 136 C-42.895 141.532 -50.885 141.387 -59.375 141.375 C-60.424 141.375 -61.473 141.375 -62.554 141.375 C-74.293 141.205 -84.911 138.73 -96 135 C-120.465 127.51 -148.193 128.921 -171 141 C-174.307 143.073 -177.164 145.326 -180 148 C-180.632 148.566 -181.263 149.132 -181.914 149.715 C-192.021 159.198 -197.35 172.584 -198.209 186.344 C-198.323 190.605 -198.404 194.863 -198.438 199.125 C-198.444 199.93 -198.451 200.735 -198.458 201.564 C-198.545 222.76 -195.799 243.702 -193.028 264.683 C-187.051 310.439 -192.206 355.261 -197.787 400.736 C-198.787 408.974 -199.655 417.216 -200.379 425.483 C-200.752 429.697 -201.234 433.834 -202 438 C-202.66 438 -203.32 438 -204 438 C-210.06 406.86 -208.433 374.799 -207.361 343.262 C-206.986 332.166 -206.812 321.101 -207 310 C-207.013 309.058 -207.025 308.116 -207.038 307.146 C-207.454 281.253 -209.889 255.221 -213.354 229.564 C-216.893 203.324 -218.717 172.726 -201.941 150.406 C-186.485 131.249 -167.23 122.025 -143 119 C-137.732 118.784 -132.46 118.807 -127.188 118.812 C-126.447 118.812 -125.707 118.811 -124.944 118.81 C-115.86 118.811 -106.933 119.076 -97.918 120.277 C-74.222 123.399 -46.807 119.642 -27.397 104.772 C-9.355 89.909 -1.61 72.308 0.656 49.23 C1.928 32.968 1.571 16.238 0 0 Z " fill="#cc0000" transform="translate(459,681)"/> <path d="M0 0 C-0.012 0.317 -0.012 0.317 -0.07 1.922 C-0.648 31.794 7.355 56.415 27 79 C27.278 79.345 27.278 79.345 28.688 81.09 C31.778 84.897 34.781 87.404 39 90 C39.336 90.25 39.336 90.25 41.039 91.516 C58.038 104.137 83.452 115.165 105 114 C104.67 113.67 104.34 113.34 104 113 C103.534 110.839 103.103 108.671 102.688 106.5 C99.035 89.17 88.825 77.57 76.312 65.5 C68.044 57.301 63.106 48.981 62.625 37.188 C62.751 29.996 64.532 23.879 69.25 18.375 C69.539 18.148 69.539 18.148 71 17 C72.019 20.057 71.986 21.712 71.812 24.875 C71.793 39.426 78.993 50.57 88.652 60.812 C90.205 62.343 91.779 63.852 93.383 65.328 C95 67 95 67 95 69 C95.577 69.224 96.155 69.449 96.75 69.68 C103.721 73.771 109.094 84.218 111.582 91.766 C112.179 94.959 112.211 98.065 112.25 101.312 C112.276 102.587 112.302 103.862 112.328 105.176 C111.957 109.5 110.897 112.141 109 116 C109.63 116.043 109.63 116.043 112.82 116.262 C136.459 118.082 168.415 122.01 185 141 C185 141.66 185 142.32 185 143 C185.639 143.268 186.279 143.536 186.938 143.812 C189 145 189 145 190 148 C190.66 148 191.32 148 192 148 C194.072 150.63 195.707 153.575 197.438 156.438 C197.928 157.221 198.418 158.004 198.924 158.811 C199.401 159.594 199.879 160.377 200.371 161.184 C200.587 161.537 200.587 161.537 201.681 163.326 C209.729 179.646 210.721 198.29 210.562 216.125 C210.559 217.137 210.555 218.149 210.552 219.191 C210.449 239.569 208.305 259.424 205.355 279.56 C200.136 315.464 196.729 350.868 196.75 387.188 C196.751 388.328 196.751 389.468 196.752 390.644 C196.78 404.79 197.145 418.879 198 433 C188.626 421.772 187.438 403.589 185.375 389.375 C185.252 388.529 185.129 387.682 185.002 386.81 C183.453 375.688 182.813 364.651 182.815 353.424 C182.813 351.426 182.794 349.428 182.775 347.43 C182.673 324.897 185.516 302.543 188.5 280.25 C194.405 235.862 194.405 235.862 194.312 215.312 C194.308 213.996 194.304 212.679 194.3 211.323 C194.061 190.644 191.009 170.338 177.488 153.98 C176 152 176 152 175 149 C173.69 148.289 172.352 147.629 171 147 C169.584 145.901 168.189 144.773 166.812 143.625 C153.524 133.188 135.961 131.062 119.75 128.438 C117.978 128.145 116.206 127.851 114.434 127.557 C111.814 127.122 109.195 126.687 106.575 126.255 C100.928 125.324 95.284 124.378 89.645 123.398 C88.973 123.284 88.301 123.169 87.609 123.051 C65.071 119.097 45.761 110.155 28 96 C27.215 95.447 26.43 94.894 25.621 94.324 C25.086 93.887 24.551 93.45 24 93 C24 92.34 24 91.68 24 91 C23.435 90.756 22.871 90.513 22.289 90.262 C8.065 82.422 -1.306 63.856 -6 49 C-10.441 32.941 -11.37 15.941 -3 1 C-1 0 -1 0 0 0 Z " fill="#cc0000" transform="translate(594,683)"/> <path d="M0 0 C0.99 0.33 1.98 0.66 3 1 C-1.136 10.306 -7.085 17.633 -14.859 24.168 C-25.171 32.993 -33.576 42.658 -36.125 56.312 C-36.293 57.196 -36.46 58.079 -36.633 58.988 C-36.754 59.652 -36.875 60.316 -37 61 C-37.99 61 -38.98 61 -40 61 C-44.099 52.399 -45.683 45.203 -42.562 36 C-37.556 24.893 -27.921 18.371 -18 12 C-16.953 11.301 -15.907 10.603 -14.828 9.883 C-7.416 5 -7.416 5 -4 5 C-4 4.34 -4 3.68 -4 3 C-2.188 1.312 -2.188 1.312 0 0 Z " fill="#cc0000" transform="translate(358,737)"/> <path d="M0 0 C7.44 10.617 10.177 28.046 10.188 40.688 C10.2 41.446 10.212 42.205 10.225 42.986 C10.235 46.856 10.195 48.707 8 52 C3.063 47.254 2.423 41.371 1.062 34.938 C-4.087 12.086 -4.087 12.086 -10 7 C-23.171 0.414 -51.534 11.446 -65 15 C-65.741 15.058 -66.482 15.116 -67.246 15.176 C-70.266 16.595 -70.898 20.018 -72 23 C-72.665 25.251 -73.269 27.52 -73.824 29.801 C-73.988 30.473 -74.152 31.146 -74.321 31.839 C-76.7 41.736 -78.847 51.688 -81.03 61.629 C-96.717 132.952 -96.717 132.952 -106.1 155.803 C-106.837 157.602 -107.53 159.418 -108.211 161.238 C-116.056 181.956 -126.34 202.186 -138 221 C-138.563 221.909 -139.125 222.818 -139.705 223.754 C-146.13 234.086 -152.61 244.326 -160 254 C-161.186 255.574 -162.372 257.148 -163.555 258.724 C-164.674 260.211 -165.798 261.694 -166.922 263.176 C-168.4 265.185 -169.799 267.253 -171.141 269.355 C-171.447 269.792 -171.447 269.792 -173 272 C-173.66 272 -174.32 272 -175 272 C-175.251 272.726 -175.503 273.451 -175.762 274.199 C-177.104 277.236 -178.666 279.284 -180.812 281.812 C-181.609 282.763 -182.406 283.713 -183.227 284.691 C-183.666 285.214 -184.106 285.736 -184.56 286.274 C-187.858 290.226 -191.071 294.249 -194.306 298.253 C-195.864 300.175 -197.43 302.089 -199 304 C-199.274 304.337 -199.274 304.337 -200.659 306.041 C-200.924 306.362 -200.924 306.362 -202.27 307.984 C-202.746 308.564 -203.223 309.144 -203.714 309.741 C-205 311 -205 311 -207 311 C-207.66 312.65 -208.32 314.3 -209 316 C-209.66 316 -210.32 316 -211 316 C-211.272 316.594 -211.543 317.187 -211.823 317.799 C-212.979 319.961 -214.153 321.447 -215.836 323.215 C-216.4 323.812 -216.964 324.41 -217.545 325.025 C-218.149 325.656 -218.753 326.287 -219.375 326.938 C-220.645 328.28 -221.914 329.622 -223.184 330.965 C-223.823 331.639 -224.462 332.313 -225.121 333.007 C-227.922 335.978 -230.679 338.989 -233.438 342 C-237.068 345.954 -240.763 349.817 -244.605 353.566 C-246 355 -246 355 -248.312 357.938 C-248.869 358.618 -249.426 359.299 -250 360 C-250.66 360 -251.32 360 -252 360 C-252.031 360.278 -252.031 360.278 -252.188 361.688 C-253.345 364.981 -255.483 366.595 -258 369 C-259.582 370.861 -261.132 372.744 -262.668 374.645 C-263.108 375.092 -263.547 375.539 -264 376 C-264.66 376 -265.32 376 -266 376 C-266 376.66 -266 377.32 -266 378 C-266.66 378 -267.32 378 -268 378 C-268.186 378.66 -268.371 379.32 -268.562 380 C-271.571 386.279 -277.041 391.191 -282 396 C-283 393 -283 393 -282 390 C-281.34 390 -280.68 390 -280 390 C-280.041 389.123 -280.082 388.247 -280.125 387.344 C-279.706 376.144 -270.34 361.164 -263 353 C-262.34 353 -261.68 353 -261 353 C-260.67 351.68 -260.34 350.36 -260 349 C-259.34 349 -258.68 349 -258 349 C-257.67 347.68 -257.34 346.36 -257 345 C-256.34 345 -255.68 345 -255 345 C-254.67 343.68 -254.34 342.36 -254 341 C-253.34 341 -252.68 341 -252 341 C-251.88 340.727 -251.88 340.727 -251.273 339.344 C-249.691 336.43 -247.737 334.055 -245.625 331.5 C-244.854 330.562 -244.083 329.623 -243.289 328.656 C-241.272 326.315 -239.295 324.07 -237 322 C-236.34 322 -235.68 322 -235 322 C-234.74 321.254 -234.479 320.509 -234.211 319.74 C-232.975 316.944 -231.74 315.333 -229.629 313.152 C-228.972 312.465 -228.315 311.777 -227.639 311.068 C-227.296 310.717 -227.296 310.717 -225.562 308.938 C-224.208 307.532 -222.855 306.124 -221.504 304.715 C-220.904 304.097 -220.304 303.48 -219.686 302.844 C-218 301 -218 301 -216.406 298.768 C-215.942 298.184 -215.478 297.601 -215 297 C-214.34 297 -213.68 297 -213 297 C-212.751 296.442 -212.502 295.884 -212.246 295.309 C-210.784 292.6 -209.032 290.43 -207.062 288.062 C-206.256 287.088 -205.449 286.113 -204.617 285.109 C-202.887 283.045 -201.141 280.995 -199.383 278.953 C-189.341 267.272 -180.034 255.158 -172 242 C-171.34 241.01 -170.68 240.02 -170 239 C-169.34 239 -168.68 239 -168 239 C-167.946 238.719 -167.946 238.719 -167.676 237.299 C-166.883 234.6 -165.683 232.597 -164.191 230.211 C-163.614 229.279 -163.037 228.347 -162.443 227.386 C-161.822 226.393 -161.202 225.399 -160.562 224.375 C-154.413 214.395 -148.558 204.319 -143 194 C-142.566 193.205 -142.132 192.41 -141.686 191.59 C-131.81 173.456 -123.299 154.79 -116.25 135.375 C-115.922 134.472 -115.594 133.57 -115.255 132.64 C-108.354 113.091 -103.062 93.071 -97.938 73 C-97.346 70.698 -96.754 68.396 -96.162 66.094 C-95.871 64.96 -95.579 63.827 -95.279 62.659 C-94.698 60.4 -94.116 58.141 -93.534 55.882 C-92.132 50.442 -90.749 44.998 -89.407 39.543 C-89.278 39.028 -89.278 39.028 -88.626 36.423 C-88.148 34.512 -87.678 32.599 -87.22 30.683 C-83.16 14.609 -83.16 14.609 -76.801 10.562 C-72.44 8.548 -67.813 7.256 -63.188 6 C-62.27 5.745 -61.352 5.49 -60.406 5.228 C-11.395 -8.175 -11.395 -8.175 0 0 Z " fill="#cc0000" transform="translate(572,742)"/> <path d="M0 0 C0 0.66 0 1.32 0 2 C0.99 2 1.98 2 3 2 C12.295 19.404 20.656 38.386 15.059 58.359 C12.499 65.556 9.133 72.272 4 78 C3.34 78 2.68 78 2 78 C1.875 78.583 1.751 79.165 1.623 79.766 C0.998 82.007 0.181 83.73 -0.961 85.75 C-1.35 86.441 -1.74 87.132 -2.141 87.844 C-2.548 88.555 -2.955 89.267 -3.375 90 C-3.775 90.712 -4.174 91.423 -4.586 92.156 C-8.712 99.431 -8.712 99.431 -11 102 C-11.66 102 -12.32 102 -13 102 C-13.113 102.278 -13.113 102.278 -13.688 103.688 C-16.41 108.485 -20.945 111.885 -25.188 115.312 C-26.15 116.099 -27.113 116.885 -28.105 117.695 C-29.894 119.12 -31.706 120.517 -33.551 121.867 C-63.752 144.313 -73.2 188.325 -83.378 222.42 C-86.027 231.241 -88.943 239.968 -91.893 248.692 C-93.794 254.323 -95.614 259.961 -97.295 265.661 C-98.212 268.705 -99.219 271.715 -100.236 274.727 C-101.035 277.104 -101.808 279.488 -102.578 281.875 C-107.392 296.69 -112.655 311.225 -120 325 C-120.66 325 -121.32 325 -122 325 C-122.062 325.66 -122.124 326.32 -122.188 327 C-123.533 331.969 -126.365 336.365 -130 340 C-131.037 341.321 -132.057 342.655 -133.062 344 C-133.59 344.701 -134.117 345.402 -134.66 346.125 C-136 348 -136 348 -137 350 C-137.66 350 -138.32 350 -139 350 C-139.66 351.65 -140.32 353.3 -141 355 C-141.66 355 -142.32 355 -143 355 C-143.268 355.639 -143.536 356.279 -143.812 356.938 C-145 359 -145 359 -148 360 C-148.33 360.99 -148.66 361.98 -149 363 C-149.99 362.67 -150.98 362.34 -152 362 C-151.567 361.319 -151.134 360.639 -150.688 359.938 C-147.993 355.247 -146.106 350.269 -144.125 345.25 C-142.748 341.778 -141.27 338.383 -139.688 335 C-136.373 327.809 -133.61 320.403 -130.774 313.015 C-128.576 307.294 -126.322 301.659 -123.688 296.125 C-120.199 288.558 -117.651 280.642 -114.959 272.767 C-113.913 269.749 -112.833 266.744 -111.75 263.738 C-108.574 254.869 -105.554 245.947 -102.527 237.026 C-101.478 233.937 -100.427 230.848 -99.375 227.759 C-96.308 218.751 -93.244 209.742 -90.22 200.719 C-89.084 197.332 -87.942 193.947 -86.799 190.562 C-86.278 189.014 -85.76 187.465 -85.246 185.915 C-78.464 165.484 -70.215 144.424 -56 128 C-55.658 127.568 -55.658 127.568 -53.926 125.383 C-52 123 -52 123 -49.438 120.5 C-47 118 -47 118 -45.312 115.188 C-44.879 114.466 -44.446 113.744 -44 113 C-43.34 113 -42.68 113 -42 113 C-41.866 112.459 -41.732 111.917 -41.594 111.359 C-41.166 109.659 -40.727 107.961 -40.281 106.266 C-40.023 105.27 -39.766 104.275 -39.5 103.25 C-39.242 102.265 -38.984 101.28 -38.719 100.266 C-36.623 90.742 -36.975 81.439 -37.215 71.734 C-37.347 60.927 -37.347 60.927 -34 56 C-33.835 55.67 -33.835 55.67 -33 54 C-27.475 51.308 -22.944 50.609 -17 52 C-16.67 52.99 -16.34 53.98 -16 55 C-19.63 55.99 -23.26 56.98 -27 58 C-27.76 62.765 -28.141 67.369 -28.211 72.191 C-28.239 73.563 -28.268 74.935 -28.297 76.307 C-28.338 78.423 -28.375 80.54 -28.401 82.656 C-28.535 92.492 -29.555 101.422 -32 111 C-31.381 110.34 -30.763 109.68 -30.125 109 C-28 107 -28 107 -26 107 C-25.879 106.722 -25.879 106.722 -25.266 105.312 C-23.741 102.526 -21.842 100.391 -19.75 98 C-15.096 92.429 -11.941 86.609 -9 80 C-11.64 80.66 -14.28 81.32 -17 82 C-17.33 80.68 -17.66 79.36 -18 78 C-16.891 76.219 -16.891 76.219 -15.25 74.5 C-14.693 73.889 -14.136 73.278 -13.562 72.648 C-13.047 72.104 -12.531 71.56 -12 71 C-7.735 66.43 -7.004 60.885 -6.996 54.805 C-7.366 48.292 -8.354 42.953 -11 37 C-11.33 36.01 -11.66 35.02 -12 34 C-14.016 33.248 -16.042 32.518 -18.102 31.895 C-21.628 30.806 -25.093 29.565 -28.562 28.312 C-29.781 27.876 -30.999 27.439 -32.254 26.988 C-33.16 26.662 -34.066 26.336 -35 26 C-35 25.34 -35 24.68 -35 24 C-11.677 25.277 -11.677 25.277 -5 31 C-1.556 35.501 0 39.524 1.25 44.938 C1.336 45.276 1.336 45.276 1.773 46.99 C3.296 53.291 3.395 59.075 2 65.438 C1.814 66.302 1.629 67.167 1.438 68.059 C1.365 68.379 1.365 68.379 1 70 C8.702 55.622 8.564 41.699 4.168 26.305 C3 23 3 23 1.363 19.758 C0 17 0 17 0 14 C-0.99 13.67 -1.98 13.34 -3 13 C-3.33 12.505 -3.33 12.505 -5 10 C-12.503 7.585 -20.935 7.473 -28.75 6.938 C-29.316 6.896 -29.316 6.896 -32.183 6.688 C-35.455 6.452 -38.727 6.224 -42 6 C-42.438 5.97 -42.438 5.97 -44.655 5.816 C-48.769 5.532 -52.884 5.258 -57 5 C-57 4.34 -57 3.68 -57 3 C-52.113 1.146 -47.532 0.432 -42.375 -0.062 C-41.966 -0.104 -41.966 -0.104 -39.894 -0.312 C-7.121 -3.452 -7.121 -3.452 0 0 Z " fill="#cc0000" transform="translate(560,766)"/> <path d="M0 0 C7.968 2.975 7.968 2.975 10.355 7.246 C10.761 15.259 4.935 22.247 -0.109 27.883 C-1.253 29.04 -2.446 30.147 -3.645 31.246 C-4.201 31.844 -4.758 32.442 -5.332 33.059 C-6.645 34.246 -6.645 34.246 -8.645 34.246 C-8.851 34.844 -9.057 35.442 -9.27 36.059 C-11.154 39.056 -13.456 39.86 -16.645 41.246 C-17.895 39.684 -17.895 39.684 -18.645 37.246 C-16.066 32.046 -12.838 27.836 -9.02 23.496 C-1.645 15.015 -1.645 15.015 -1.645 9.246 C-5.605 7.596 -9.565 5.946 -13.645 4.246 C-13.315 2.926 -12.985 1.606 -12.645 0.246 C-8.588 -1.782 -4.226 -1.205 0 0 Z " fill="#cc0000" transform="translate(597.64453125,769.75390625)"/> <path d="M0 0 C0.33 0.495 0.33 0.495 2 3 C-1.271 5.054 -4.443 6.714 -8.062 8.062 C-8.899 8.383 -9.736 8.704 -10.598 9.035 C-19.652 11.603 -28.685 12.362 -38.062 12.312 C-38.6 12.311 -38.6 12.311 -41.319 12.304 C-52.409 12.161 -64.751 11.64 -75 7 C-75 6.67 -75 6.34 -75 6 C-73.993 6.012 -72.986 6.023 -71.949 6.035 C-67.299 6.074 -62.65 6.049 -58 6 C-57.289 5.994 -56.578 5.988 -55.846 5.982 C-43.069 5.802 -30.601 3.85 -18.029 1.728 C-17.354 1.615 -16.678 1.503 -15.983 1.387 C-14.131 1.078 -12.281 0.761 -10.431 0.443 C-6.867 -0.017 -3.586 -0.285 0 0 Z " fill="#cc0000" transform="translate(689,812)"/> <path d="M0 0 C2 1.312 2 1.312 4 3 C4 3.99 4 4.98 4 6 C4.66 6 5.32 6 6 6 C8.034 9.73 9 11.669 9 16 C9.66 16 10.32 16 11 16 C11.495 18.64 11.495 18.64 14 32 C15.155 30.515 16.31 29.03 17.5 27.5 C23.548 19.972 29.499 13.703 38 9 C37.418 12.374 36.393 13.642 34 16 C33.049 17.742 32.16 19.518 31.312 21.312 C29.042 25.982 26.61 30.513 24 35 C22.662 37.331 21.331 39.665 20 42 C19.484 42.895 18.969 43.789 18.438 44.711 C3.971 71.522 -1.921 104.303 6 134 C6.515 135.247 7.051 136.485 7.605 137.715 C9 141 9 141 9 145 C9.66 145 10.32 145 11 145 C14.054 150.375 14.054 150.375 13.832 152.938 C12.74 155.644 11.195 157.203 9.125 159.25 C8.426 159.956 7.728 160.663 7.008 161.391 C5 163 5 163 2 163 C1.225 161.648 0.455 160.294 -0.312 158.938 C-0.742 158.183 -1.171 157.429 -1.613 156.652 C-15.489 130.113 -16.58 99.769 -7.75 71.5 C-5.481 64.927 -2.656 58.753 0.449 52.535 C3.485 45.614 4.338 39.332 4.25 31.812 C4.245 30.986 4.239 30.16 4.234 29.308 C4.116 21.637 3.88 13.568 0.93 6.398 C0 4 0 4 0 0 Z " fill="#cc0000" transform="translate(327,895)"/> <path d="M0 0 C0.66 0 1.32 0 2 0 C1.867 0.724 1.734 1.449 1.598 2.195 C1.421 3.162 1.244 4.129 1.062 5.125 C0.888 6.076 0.714 7.028 0.535 8.008 C0.359 8.995 0.182 9.983 0 11 C-0.18 11.923 -0.361 12.846 -0.547 13.797 C-2.213 25.577 -1.843 37.06 3 48 C3.784 49.784 4.568 51.568 5.352 53.352 C6.682 56.378 8.013 59.404 9.349 62.428 C12.6 69.862 15.169 77.081 17 85 C17.284 86.12 17.567 87.24 17.859 88.395 C21.052 101.812 21.796 114.426 19 128 C18.866 128.786 18.732 129.573 18.594 130.383 C16.748 140.287 12.104 149.4 7 158 C7.492 158.414 7.984 158.828 8.491 159.255 C10.672 161.777 10.194 164.061 10.01 167.256 C9.977 167.668 9.977 167.668 9.812 169.75 C9.756 170.603 9.699 171.455 9.64 172.333 C9.095 179.942 8.095 187.452 7 195 C5.501 205.743 4.716 216.145 5 227 C2 225 2 225 1.086 221.297 C0.836 219.783 0.599 218.268 0.375 216.75 C0.254 215.998 0.133 215.247 0.008 214.473 C-0.22 213.053 -0.443 211.632 -0.659 210.21 C-0.918 208.533 -1.216 206.863 -1.532 205.196 C-2.054 201.633 -2.13 198.227 -2.133 194.625 C-2.134 193.937 -2.135 193.25 -2.136 192.542 C-2.136 191.096 -2.135 189.651 -2.13 188.205 C-2.125 186.006 -2.13 183.808 -2.137 181.609 C-2.136 180.198 -2.135 178.786 -2.133 177.375 C-2.132 176.104 -2.131 174.833 -2.129 173.523 C-2.009 170.256 -1.621 167.206 -1 164 C-1.811 164.543 -2.622 165.085 -3.457 165.645 C-10.483 170.184 -16.669 173.397 -25 175 C-23.384 171.768 -21.682 169.632 -18.875 167.438 C-6.568 157.243 0.438 141.725 2 126 C3.39 103.104 -0.01 83.373 -8 62 C-8.252 61.313 -8.504 60.625 -8.764 59.917 C-12.342 50.359 -17.352 41.694 -22.562 32.938 C-23.2 31.866 -23.837 30.794 -24.494 29.69 C-27.253 25.152 -29.951 20.881 -33.527 16.941 C-34.343 15.971 -35.159 15 -36 14 C-35.67 13.01 -35.34 12.02 -35 11 C-35 11.66 -35 12.32 -35 13 C-34.443 13.082 -33.886 13.165 -33.312 13.25 C-30.263 14.239 -28.348 15.848 -26 18 C-26 18.66 -26 19.32 -26 20 C-25.423 20.247 -24.845 20.495 -24.25 20.75 C-21.671 22.183 -19.939 23.784 -18 26 C-18 26.66 -18 27.32 -18 28 C-17.381 28.289 -16.763 28.577 -16.125 28.875 C-14 30 -14 30 -12 32 C-11.918 30.783 -11.835 29.566 -11.75 28.312 C-10.523 17.77 -7.272 7.935 0 0 Z " fill="#cc0000" transform="translate(718,896)"/> <path d="M0 0 C1.362 3.385 0.655 5.81 -0.336 9.226 C-5.982 28.805 -4.533 52.773 2.275 71.948 C3.019 74.053 3.671 76.174 4.312 78.312 C7.618 88.263 12.741 97.711 19.793 105.449 C21 107 21 107 21 109 C21.598 109.082 22.196 109.165 22.812 109.25 C25.597 110.205 26.433 111.571 28 114 C24.213 114 22.166 112.731 18.812 111 C17.726 110.443 16.639 109.886 15.52 109.312 C14.688 108.879 13.857 108.446 13 108 C13 107.34 13 106.68 13 106 C12.68 105.938 12.68 105.938 11.062 105.625 C10.382 105.419 9.701 105.213 9 105 C8.835 104.67 8.835 104.67 8 103 C7.689 102.847 7.689 102.847 6.117 102.07 C2.533 100.258 0.46 97.104 -2 94 C-2.266 93.665 -2.266 93.665 -3.613 91.973 C-16.022 75.93 -19.462 56.682 -17.723 36.836 C-15.986 24.298 -11.008 12.811 -3 3 C-2.34 3 -1.68 3 -1 3 C-0.67 2.01 -0.34 1.02 0 0 Z " fill="#cc0000" transform="translate(552,938)"/> <path d="M0 0 C4.668 1.382 6.539 3.504 9.312 7.438 C10.01 8.406 10.707 9.374 11.426 10.371 C13 13 13 13 13 16 C13.66 16 14.32 16 15 16 C22.792 34.706 24.84 54.428 17.688 73.82 C16.534 76.593 15.334 79.31 14 82 C13.34 82 12.68 82 12 82 C11.903 82.741 11.807 83.482 11.707 84.246 C10.906 87.365 9.861 88.722 7.688 91.062 C7.37 91.407 7.37 91.407 5.762 93.152 C5.18 93.762 4.599 94.372 4 95 C3.34 95.701 2.68 96.402 2 97.125 C1.34 97.744 0.68 98.362 0 99 C-0.442 99.437 -0.884 99.874 -1.34 100.324 C-6.727 105.343 -13.233 109.138 -20 112 C-20.99 111.67 -21.98 111.34 -23 111 C-21.625 109 -21.625 109 -20 107 C-19.34 107 -18.68 107 -18 107 C-18 106.34 -18 105.68 -18 105 C-16.356 103.311 -14.686 101.647 -13 100 C-9.276 95.552 -9.276 95.552 -8 93 C-7.34 93 -6.68 93 -6 93 C-5.897 92.278 -5.794 91.556 -5.688 90.812 C-5 88 -5 88 -3.645 85.781 C7.871 66.305 10.231 39.56 5.777 17.684 C4.482 13.213 2.806 8.914 1.023 4.617 C0 2 0 2 0 0 Z " fill="#cc0000" transform="translate(500,943)"/> </svg> </span>
+    <div class="hdr-title"><em>SHH</em> ROOM<span>Control de pagos</span></div>
+  </div>
+  <div class="mes-nav">
+    <button onclick="cambiarMes(-1)">◀</button>
+    <div class="mes-lbl" id="mes-lbl"></div>
+    <button onclick="cambiarMes(1)">▶</button>
+    <button onclick="irMesActual()" style="background:rgba(34,197,94,.25);border-color:rgba(34,197,94,.5);">Hoy</button>
+  </div>
+  <div class="hdr-usr" id="hdr-usr">
+    <span id="hdr-unom"></span>
+    <button class="btn-salir" onclick="logout()">Salir</button>
+  </div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs" id="tabs-container">
+    <div class="tab active" onclick="mostrarVista('dashboard')" id="tab-dashboard">📊 Dashboard</div>
+    <div class="tab" onclick="mostrarVista('alertas')" id="tab-alertas">🚨 Alertas</div>
+    <div class="tab" onclick="mostrarVista('anual')" id="tab-anual">📈 Resumen Anual</div>
+    <div class="tab" onclick="mostrarVista('historial')" id="tab-historial">📋 Historial</div>
+    <div class="tab" onclick="mostrarVista('usuarios')" id="tab-usuarios" style="display:none;">👥 Usuarios</div>
+  </div>
+</div>
+<div class="main" id="main-content"></div>
+
+<!-- MODAL PAGOS -->
+<div class="modal-wrap" id="modal-pago-wrap">
+  <div class="modal-box">
+    <h3 id="modal-pago-titulo"></h3>
+    <div class="modal-precio-info">
+      <span id="modal-precio-esp" style="color:var(--suave);font-size:.82rem;"></span>
+      <span class="precio-tot" id="modal-precio-tot"></span>
+    </div>
+    <div class="parciales-list" id="parciales-list"></div>
+    <button class="btn-add-parcial" onclick="addParcialRow()">+ Añadir cobro parcial</button>
+    <div class="chk-row" onclick="document.getElementById('chk-done').click()">
+      <input type="checkbox" id="chk-done">
+      <label for="chk-done">Marcar como completa aunque el importe sea menor</label>
+    </div>
+    <div class="estado-selector" id="estado-selector-wrap">
+      <div class="lbl-est">Estado de entrega</div>
+      <div class="estado-btns">
+        <button class="est-btn" id="btn-recogida" onclick="selEstado('recogida')">📦 Recogida (socia)</button>
+        <button class="est-btn" id="btn-contabilizada" onclick="selEstado('contabilizada')">✅ Contabilizada (Rubén)</button>
+      </div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn-ok" onclick="guardarPagos()">✓ Guardar</button>
+      <button class="mbtn-cancel" onclick="cerrarModal('pago')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOMBRE -->
+<div class="modal-wrap" id="modal-nombre-wrap">
+  <div class="modal-sm">
+    <h3 id="modal-nombre-titulo">✏ Editar inquilina</h3>
+    <div class="mf"><label>Nombre</label><input type="text" id="mn-input" placeholder="Nombre..."></div>
+    <div class="sm-btns">
+      <button class="btn-ba" onclick="guardarNombre()">Guardar</button>
+      <button class="btn-bv" onclick="vaciarHab()">🏚 Vacía</button>
+      <button class="btn-bc" onclick="cerrarModal('nombre')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RESERVA -->
+<div class="modal-wrap" id="modal-reserva-wrap">
+  <div class="modal-sm">
+    <h3>💰 Depósito reserva</h3>
+    <div class="mf"><label>Importe (€)</label><input type="number" id="mr-input" min="0" placeholder="Ej: 50"></div>
+    <div class="sm-btns">
+      <button class="btn-ba" style="background:var(--ambar);" onclick="guardarReserva()">Guardar</button>
+      <button class="btn-bv" onclick="quitarReserva()">Quitar</button>
+      <button class="btn-bc" onclick="cerrarModal('reserva')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GASTOS EXTRA -->
+<div class="modal-wrap" id="modal-ge-wrap">
+  <div class="modal-ge">
+    <h3 id="modal-ge-titulo">➕ Gastos extra</h3>
+    <div class="ge-list" id="ge-list"></div>
+    <button class="btn-add-ge" onclick="addGeRow()">+ Añadir gasto</button>
+    <div class="ge-total" id="ge-total"></div>
+    <div class="mbtns">
+      <button class="mbtn-ok" style="background:var(--rojo);" onclick="guardarGastos()">✓ Guardar gastos</button>
+      <button class="mbtn-cancel" onclick="cerrarModal('ge')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-wrap" id="modal-usr-wrap">
+  <div class="modal-usr">
+    <h3 id="mu-titulo">👤 Nuevo usuario</h3>
+    <div class="mf"><label>Nombre</label><input type="text" id="mu-nombre" placeholder="Nombre..."></div>
+    <div class="mf"><label>PIN (mínimo 4 dígitos)</label><input type="tel" id="mu-pin" placeholder="ej: 1234" maxlength="8"></div>
+    <div class="mf">
+      <label>Rol</label>
+      <div class="rol-row">
+        <label class="rol-opt" id="rolopt-a" onclick="setTimeout(toggleRolUI,10)">
+          <input type="radio" name="mu-rol" id="mu-rol-admin" value="admin">
+          <span>👑 Administrador</span>
+        </label>
+        <label class="rol-opt sel-t" id="rolopt-t" onclick="setTimeout(toggleRolUI,10)">
+          <input type="radio" name="mu-rol" id="mu-rol-trab" value="trabajadora" checked>
+          <span>👤 Trabajadora</span>
+        </label>
+      </div>
+    </div>
+    <div id="mu-pisos-sec" class="mf">
+      <label>Pisos asignados</label>
+      <div class="pisos-chk-grid" id="mu-pisos-grid"></div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn-ok" onclick="guardarUsuario()">✓ Guardar</button>
+      <button class="mbtn-cancel" onclick="cerrarModal('usr')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.onerror=function(msg,src,line){
+  var m=document.getElementById('main-content');
+  if(m) m.innerHTML='<div style="padding:24px;background:#1a0000;border:1px solid #cc0000;border-radius:12px;margin:16px;font-size:15px;color:#f0f0f0"><strong>Error</strong><br><small>'+msg+' (l.'+line+')</small><br><br><button onclick="location.reload()" style="padding:12px 20px;background:#cc0000;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer">Reintentar</button></div>';
+};
+
+var PISOS=[
+  {id:0,nombre:"Francia 15",gastos:1608,habs:[{n:"CRISTINA",p:200,d:"VIERNES",r:50},{n:"CHANEL",p:260,d:"VIERNES",r:0},{n:"ESTHER",p:200,d:"MARTES",r:0},{n:"BELLA",p:230,d:"MX",r:0}]},
+  {id:1,nombre:"Francia 17",gastos:1985,habs:[{n:"EVA",p:260,d:"VIERNES",r:0},{n:"ANDREA",p:200,d:"SÁBADO",r:50},{n:"CAROLINA",p:200,d:"LUNES",r:50},{n:"KATY",p:250,d:"MARTES",r:0}]},
+  {id:2,nombre:"Alfred Torán 7",gastos:1293,habs:[{n:"PAULA",p:260,d:"JUEVES",r:0},{n:"CAMILA",p:200,d:"LUNES",r:50},{n:"LORENA",p:200,d:"VIERNES",r:0},{n:"LUCY",p:220,d:"LUNES",r:0}]},
+  {id:3,nombre:"Francia 45",gastos:1737,habs:[{n:"ASCENSION",p:260,d:"MARTES",r:0},{n:"ANA",p:230,d:"SÁBADO",r:50},{n:"LETI",p:200,d:"MARTES",r:0},{n:"THAIS",p:200,d:"VIERNES",r:50}]},
+  {id:4,nombre:"Francia 65",gastos:2055,habs:[{n:"VEGA",p:260,d:"JUEVES",r:0},{n:"MARCELA",p:200,d:"LUNES",r:50},{n:"MAR",p:200,d:"MX",r:0},{n:"ALEJANDRA",p:230,d:"VIERNES",r:50},{n:"ANA",p:220,d:"LUNES",r:50}]},
+  {id:5,nombre:"Amadeo Roca 3",gastos:1822,habs:[{n:"MARIANA",p:260,d:"MX",r:0},{n:"ILONA",p:200,d:"JUEVES",r:0},{n:"ELENA",p:200,d:"LUNES",r:0},{n:"VICTORIA",p:230,d:"VIERNES",r:50}]},
+  {id:6,nombre:"Poeta Quintana 23",gastos:1599,habs:[{n:"SANDRA",p:280,d:"VIERNES",r:0},{n:"ALICIA",p:200,d:"DOMINGO",r:50},{n:"PATRICIA",p:220,d:"JUEVES",r:50},{n:"ANGIE",p:230,d:"DOMINGO",r:50}]},
+  {id:7,nombre:"Rambla Méndez N.",gastos:1750,habs:[{n:"ELENA",p:300,d:"MARTES",r:50},{n:"VALENTINA",p:250,d:"MX",r:50},{n:"ANNY",p:220,d:"JUEVES",r:50},{n:"MARIA",p:220,d:"DOMINGO",r:50},{n:"LORENA",p:230,d:"SÁBADO",r:50}]}
+];
+var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+var MESES_CORTO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+var UCOLORS=['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16'];
+var TODOS_PISOS=[0,1,2,3,4,5,6,7];
+
+// STORAGE
+var _mem={};
+function sg(key,def){try{var r=localStorage.getItem(key);return r?JSON.parse(r):def;}catch(e){return _mem[key]!==undefined?_mem[key]:def;}}
+function sv(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){_mem[key]=val;}}
+
+var pagos=sg('crm4_pagos',{});
+var nombres=sg('crm4_nombres',{});
+var reservas=sg('crm4_reservas',{});
+var semsAct=sg('crm4_sems',{});
+var gastosExtra=sg('crm4_gastos',{});
+
+// USUARIOS
+var _defUsers=[{id:'admin',nombre:'Rubén',pin:'1111',rol:'admin',pisos:TODOS_PISOS}];
+var usuarios=sg('crm4_users',_defUsers);
+// Garantizar al menos un admin
+var _ha=false;
+for(var _i=0;_i<usuarios.length;_i++){if(usuarios[_i].rol==='admin'){_ha=true;break;}}
+if(!_ha){usuarios=_defUsers.slice();sv('crm4_users',usuarios);}
+
+var usuarioActual=null;
+var _pinBuf='';
+var _pinUid=null;
+var _uEditId=null;
+
+function svU(){sv('crm4_users',usuarios);}
+function getU(id){for(var i=0;i<usuarios.length;i++){if(usuarios[i].id===id)return usuarios[i];}return null;}
+function esAdmin(){return usuarioActual&&usuarioActual.rol==='admin';}
+function esTrab(){return usuarioActual&&usuarioActual.rol!=='admin';}
+function tienePiso(pid){
+  if(!usuarioActual) return false;
+  if(usuarioActual.rol==='admin') return true;
+  for(var i=0;i<usuarioActual.pisos.length;i++){if(usuarioActual.pisos[i]===pid)return true;}
+  return false;
+}
+function checkSesion(){
+  try{var s=sessionStorage.getItem('crm4_ses');if(s){var d=JSON.parse(s);var u=getU(d.id);if(u&&u.pin===d.pin){usuarioActual=u;return true;}}}catch(e){}
+  return false;
+}
+function guardarSesion(u){try{sessionStorage.setItem('crm4_ses',JSON.stringify({id:u.id,pin:u.pin}));}catch(e){}}
+function borrarSesion(){try{sessionStorage.removeItem('crm4_ses');}catch(e){}}
+
+// LOGIN
+function mostrarLogin(){
+  var ov=document.getElementById('login-ov');if(ov) ov.style.display='flex';
+  renderUcards();pstep(1);
+}
+function ocultarLogin(){var ov=document.getElementById('login-ov');if(ov) ov.style.display='none';}
+function pstep(n){
+  document.getElementById('ls1').style.display=n===1?'block':'none';
+  document.getElementById('ls2').style.display=n===2?'block':'none';
+}
+function renderUcards(){
+  var c=document.getElementById('ucards');if(!c) return;
+  c.innerHTML=usuarios.map(function(u,i){
+    var col=UCOLORS[i%UCOLORS.length];
+    var ini=u.nombre.charAt(0).toUpperCase();
+    return '<button class="ucard" onclick="selUser(\''+u.id+'\')"><div class="ucard-av" style="background:'+col+'">'+ini+'</div><div><div class="ucard-nm">'+u.nombre+'</div><div class="ucard-rl '+(u.rol==='admin'?'rl-admin':'rl-trab')+'">'+(u.rol==='admin'?'👑 Administrador':'👤 Trabajadora')+'</div></div></button>';
+  }).join('');
+}
+function selUser(id){
+  _pinUid=id;_pinBuf='';
+  var u=getU(id);
+  document.getElementById('pin-nom').textContent=u?u.nombre:'';
+  document.getElementById('pin-err').textContent='';
+  updDots();pstep(2);
+}
+function pd(d){
+  if(_pinBuf.length>=4) return;
+  _pinBuf+=d;updDots();
+  if(_pinBuf.length===4) setTimeout(checkPin,180);
+}
+function pback(){_pinBuf=_pinBuf.slice(0,-1);updDots();document.getElementById('pin-err').textContent='';}
+function updDots(){
+  var dots=document.querySelectorAll('.pin-dot');
+  for(var i=0;i<dots.length;i++){dots[i].className='pin-dot'+(_pinBuf.length>i?' on':'');}
+}
+function checkPin(){
+  var u=getU(_pinUid);
+  if(u&&u.pin===_pinBuf){
+    usuarioActual=u;guardarSesion(u);ocultarLogin();arrancarApp();
+  } else {
+    document.getElementById('pin-err').textContent='❌ PIN incorrecto';
+    _pinBuf='';updDots();
+    var b=document.getElementById('ls2');
+    b.style.transition='transform .07s';b.style.transform='translateX(-10px)';
+    setTimeout(function(){b.style.transform='translateX(10px)';},70);
+    setTimeout(function(){b.style.transform='';},140);
+  }
+}
+function logout(){
+  if(!confirm('¿Cerrar sesión?')) return;
+  usuarioActual=null;borrarSesion();
+  var hu=document.getElementById('hdr-usr');if(hu) hu.style.display='none';
+  mostrarLogin();
+}
+
+// ARRANCAR APP
+function arrancarApp(){
+  var hu=document.getElementById('hdr-usr');
+  if(hu){hu.style.display='flex';document.getElementById('hdr-unom').textContent=usuarioActual.nombre+(usuarioActual.rol==='admin'?' 👑':'');}
+  // Tabs visibilidad
+  PISOS.forEach(function(p){
+    var t=document.getElementById('tab-piso-'+p.id);
+    if(t) t.style.display=tienePiso(p.id)?'':'none';
+  });
+  var tA=document.getElementById('tab-anual');var tH=document.getElementById('tab-historial');
+  var tD=document.getElementById('tab-dashboard');var tU=document.getElementById('tab-usuarios');
+  if(tA) tA.style.display=esAdmin()?'':'none';
+  if(tH) tH.style.display=esAdmin()?'':'none';
+  if(tD) tD.style.display=esAdmin()?'':'none';
+  if(tU) tU.style.display=esAdmin()?'':'none';
+  // Vista inicial
+  if(esTrab()&&usuarioActual.pisos.length>0){
+    mostrarVista('piso-'+usuarioActual.pisos[0]);
+  } else if(esTrab()){
+    mostrarVista('alertas');
+  } else {
+    mostrarVista('dashboard');
+  }
+  actualizarMesLbl();renderAll();
+}
+
+// ESTADO
+var mesActual=new Date().getMonth();
+var anioActual=new Date().getFullYear();
+var anioAnual=new Date().getFullYear();
+var modalCtx=null;
+var parcialesToEdit=[];
+var estadoEdit='recogida';
+var geEdit=[];
+
+// KEYS
+function pk(a,m,pid,h,s){return a+'-'+m+'-'+pid+'-'+h+'-'+s;}
+function sk(a,m,pid,s){return a+'-'+m+'-'+pid+'-'+s;}
+function hk(pid,h){return pid+'-'+h;}
+function gk(a,m){return a+'-'+m;}
+
+// GETTERS
+function getNombre(pid,hIdx){var k=hk(pid,hIdx);return k in nombres?nombres[k]:PISOS[pid].habs[hIdx].n;}
+function isVacia(pid,hIdx){var k=hk(pid,hIdx);return k in nombres&&nombres[k]==='';}
+function getReserva(pid,hIdx){var k=hk(pid,hIdx);return k in reservas?reservas[k]:PISOS[pid].habs[hIdx].r;}
+function isSemActiva(a,m,pid,s){var k=sk(a,m,pid,s);return k in semsAct?semsAct[k]:s<4;}
+function getPagoData(a,m,pid,h,s){return pagos[pk(a,m,pid,h,s)]||{parciales:[],done:false,estado:'recogida'};}
+function getTot(data){return data.parciales.reduce(function(t,p){return t+(parseFloat(p.imp)||0);},0);}
+function getGastosExtraMes(a,m){return gastosExtra[gk(a,m)]||[];}
+function sumGastosExtra(a,m){return getGastosExtraMes(a,m).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
+
+// CALCULOS
+function calcPiso(pid,a,m){
+  var piso=PISOS[pid],contab=0,recog=0,pendiente=0,esperado=0;
+  piso.habs.forEach(function(hab,hIdx){
+    if(isVacia(pid,hIdx)) return;
+    for(var s=0;s<5;s++){
+      if(!isSemActiva(a,m,pid,s)) continue;
+      esperado+=hab.p;
+      var data=getPagoData(a,m,pid,hIdx,s);
+      var tot=getTot(data);
+      var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+      if(est==='contabilizada') contab+=tot>0?tot:hab.p;
+      else if(est==='recogida'&&(tot>0||data.done)) recog+=tot>0?tot:hab.p;
+      else pendiente+=hab.p;
+    }
+  });
+  return{contab:contab,recog:recog,pendiente:pendiente,esperado:esperado};
+}
+function calcAnualMes(a,m){
+  var contab=0,recog=0,gastosFijos=0,gastosEx=sumGastosExtra(a,m);
+  PISOS.forEach(function(p){var c=calcPiso(p.id,a,m);contab+=c.contab;recog+=c.recog;gastosFijos+=p.gastos;});
+  return{contab:contab,recog:recog,gastosFijos:gastosFijos,gastosEx:gastosEx,neto:contab-gastosFijos-gastosEx};
+}
+
+// MODAL PAGOS
+function abrirModalPago(pid,hIdx,sIdx){
+  var piso=PISOS[pid],hab=piso.habs[hIdx],nombre=getNombre(pid,hIdx);
+  var data=getPagoData(anioActual,mesActual,pid,hIdx,sIdx);
+  modalCtx={pid:pid,hIdx:hIdx,sIdx:sIdx};
+  parcialesToEdit=data.parciales.map(function(p){return{imp:p.imp,nota:p.nota};});
+  estadoEdit=esTrab()?'recogida':(data.estado||'recogida');
+  document.getElementById('modal-pago-titulo').textContent=nombre+' · '+piso.nombre+' · Sem.'+(sIdx+1);
+  document.getElementById('chk-done').checked=data.done;
+  var btnC=document.getElementById('btn-contabilizada');
+  if(btnC) btnC.style.display=esTrab()?'none':'';
+  actualizarEstadoBtns();
+  renderParciales(hab.p);
+  document.getElementById('modal-pago-wrap').classList.add('open');
+}
+function selEstado(est){if(esTrab()&&est==='contabilizada') return;estadoEdit=est;actualizarEstadoBtns();}
+function actualizarEstadoBtns(){
+  document.getElementById('btn-recogida').className='est-btn'+(estadoEdit==='recogida'?' sel-recogida':'');
+  document.getElementById('btn-contabilizada').className='est-btn'+(estadoEdit==='contabilizada'?' sel-contabilizada':'');
+}
+function renderParciales(precio){
+  var list=document.getElementById('parciales-list');if(!list) return;
+  if(parcialesToEdit.length===0){
+    list.innerHTML='<div class="parciales-empty">Sin cobros. Usa "+ Añadir cobro parcial".</div>';
+  } else {
+    list.innerHTML=parcialesToEdit.map(function(p,i){
+      return '<div class="parcial-row"><input class="p-imp" type="number" value="'+(p.imp||'')+'" min="0" placeholder="€" oninput="parcialesToEdit['+i+'].imp=parseFloat(this.value)||0;actualizarTotalModal('+precio+')">'
+        +'<input class="p-nota" type="text" value="'+(p.nota||'')+'" placeholder="lunes, Bizum..." oninput="parcialesToEdit['+i+'].nota=this.value">'
+        +'<button class="p-del" onclick="borrarParcial('+i+','+precio+')">✕</button></div>';
+    }).join('');
+  }
+  actualizarTotalModal(precio);
+}
+function addParcialRow(){
+  var pid=modalCtx.pid,hIdx=modalCtx.hIdx,precio=PISOS[pid].habs[hIdx].p;
+  var tot=parcialesToEdit.reduce(function(t,p){return t+(parseFloat(p.imp)||0);},0);
+  parcialesToEdit.push({imp:Math.max(0,precio-tot)||precio,nota:''});
+  renderParciales(precio);
+  setTimeout(function(){var ins=document.querySelectorAll('.p-imp');if(ins.length)ins[ins.length-1].focus();},50);
+}
+function borrarParcial(i,precio){parcialesToEdit.splice(i,1);renderParciales(precio);}
+function actualizarTotalModal(precio){
+  var tot=parcialesToEdit.reduce(function(t,p){return t+(parseFloat(p.imp)||0);},0);
+  var el=document.getElementById('modal-precio-tot');if(!el) return;
+  el.textContent='€'+Math.round(tot)+' / €'+precio;
+  el.className='precio-tot '+(tot>=precio?'full':tot>0?'partial':'zero');
+  var esp=document.getElementById('modal-precio-esp');if(esp) esp.textContent='Precio semana: €'+precio;
+}
+function guardarPagos(){
+  var ctx=modalCtx,pid=ctx.pid,hIdx=ctx.hIdx,sIdx=ctx.sIdx;
+  var done=document.getElementById('chk-done').checked;
+  var parciales=parcialesToEdit.filter(function(p){return (parseFloat(p.imp)||0)>0;});
+  var estado=esTrab()?'recogida':estadoEdit;
+  var k=pk(anioActual,mesActual,pid,hIdx,sIdx);
+  if(parciales.length===0&&!done){delete pagos[k];}else{pagos[k]={parciales:parciales,done:done,estado:estado};}
+  sv('crm4_pagos',pagos);cerrarModal('pago');renderAll();
+}
+function borrarCelda(pid,hIdx,sIdx){delete pagos[pk(anioActual,mesActual,pid,hIdx,sIdx)];sv('crm4_pagos',pagos);renderAll();}
+
+// MODAL NOMBRE
+function abrirModalNombre(pid,hIdx){
+  modalCtx={pid:pid,hIdx:hIdx};
+  document.getElementById('modal-nombre-titulo').textContent='✏ '+PISOS[pid].nombre+' · Hab.'+(hIdx+1);
+  document.getElementById('mn-input').value=getNombre(pid,hIdx);
+  document.getElementById('modal-nombre-wrap').classList.add('open');
+  setTimeout(function(){document.getElementById('mn-input').select();},50);
+}
+function guardarNombre(){
+  var ctx=modalCtx,v=document.getElementById('mn-input').value.trim().toUpperCase();
+  nombres[hk(ctx.pid,ctx.hIdx)]=v;sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
+}
+function vaciarHab(){
+  if(!confirm('¿Marcar habitación como vacía?')) return;
+  var ctx=modalCtx;nombres[hk(ctx.pid,ctx.hIdx)]='';sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
+}
+
+// MODAL RESERVA
+function abrirModalReserva(pid,hIdx){
+  modalCtx={pid:pid,hIdx:hIdx};
+  document.getElementById('mr-input').value=getReserva(pid,hIdx)||'';
+  document.getElementById('modal-reserva-wrap').classList.add('open');
+  setTimeout(function(){document.getElementById('mr-input').focus();},50);
+}
+function guardarReserva(){
+  var ctx=modalCtx,v=parseFloat(document.getElementById('mr-input').value)||0;
+  reservas[hk(ctx.pid,ctx.hIdx)]=v;sv('crm4_reservas',reservas);cerrarModal('reserva');renderAll();
+}
+function quitarReserva(){
+  var ctx=modalCtx;reservas[hk(ctx.pid,ctx.hIdx)]=0;sv('crm4_reservas',reservas);cerrarModal('reserva');renderAll();
+}
+
+// MODAL GASTOS EXTRA
+function abrirModalGe(a,m){
+  modalCtx={a:a,m:m};
+  geEdit=getGastosExtraMes(a,m).map(function(g){return{concepto:g.concepto,imp:g.imp};});
+  document.getElementById('modal-ge-titulo').textContent='➕ Gastos extra — '+MESES[m]+' '+a;
+  renderGeList();document.getElementById('modal-ge-wrap').classList.add('open');
+}
+function renderGeList(){
+  var list=document.getElementById('ge-list');if(!list) return;
+  if(geEdit.length===0){list.innerHTML='<div class="parciales-empty">Sin gastos extra este mes.</div>';}
+  else{list.innerHTML=geEdit.map(function(g,i){return '<div class="ge-row"><input class="ge-concepto" type="text" value="'+(g.concepto||'')+'" placeholder="Reparación..." oninput="geEdit['+i+'].concepto=this.value"><input class="ge-imp" type="number" value="'+(g.imp||'')+'" min="0" placeholder="€" oninput="geEdit['+i+'].imp=parseFloat(this.value)||0;actualizarGeTot()"><button class="ge-del" onclick="geEdit.splice('+i+',1);renderGeList()">✕</button></div>';}).join('');}
+  actualizarGeTot();
+}
+function addGeRow(){geEdit.push({concepto:'',imp:0});renderGeList();setTimeout(function(){var ins=document.querySelectorAll('.ge-concepto');if(ins.length)ins[ins.length-1].focus();},50);}
+function actualizarGeTot(){var tot=geEdit.reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);var el=document.getElementById('ge-total');if(el)el.textContent='Total: €'+tot.toLocaleString();}
+function guardarGastos(){
+  var ctx=modalCtx,k=gk(ctx.a,ctx.m);
+  var list=geEdit.filter(function(g){return (parseFloat(g.imp)||0)>0;});
+  if(list.length===0){delete gastosExtra[k];}else{gastosExtra[k]=list;}
+  sv('crm4_gastos',gastosExtra);cerrarModal('ge');renderAnual();
+}
+
+// MODAL USUARIO
+function toggleRolUI(){
+  var isAdmin=document.getElementById('mu-rol-admin').checked;
+  document.getElementById('mu-pisos-sec').style.display=isAdmin?'none':'';
+  document.getElementById('rolopt-a').className='rol-opt'+(isAdmin?' sel-a':'');
+  document.getElementById('rolopt-t').className='rol-opt'+(!isAdmin?' sel-t':'');
+}
+function abrirModalUsuario(uid){
+  _uEditId=uid;
+  var u=uid?getU(uid):null;
+  document.getElementById('mu-titulo').textContent=uid?'✏ Editar usuario':'👤 Nuevo usuario';
+  document.getElementById('mu-nombre').value=u?u.nombre:'';
+  document.getElementById('mu-pin').value=u?u.pin:'';
+  var isAdmin=u?u.rol==='admin':false;
+  document.getElementById('mu-rol-admin').checked=isAdmin;
+  document.getElementById('mu-rol-trab').checked=!isAdmin;
+  var grid=document.getElementById('mu-pisos-grid');
+  if(grid){
+    grid.innerHTML=PISOS.map(function(p){
+      var checked=u&&u.pisos.indexOf(p.id)!==-1?'checked':'';
+      return '<label class="piso-chk-lbl"><input type="checkbox" id="mup-'+p.id+'" '+checked+'>'+p.nombre+'</label>';
+    }).join('');
+  }
+  toggleRolUI();
+  document.getElementById('modal-usr-wrap').classList.add('open');
+  setTimeout(function(){var el=document.getElementById('mu-nombre');if(el)el.focus();},80);
+}
+function guardarUsuario(){
+  var nombre=document.getElementById('mu-nombre').value.trim();
+  var pin=document.getElementById('mu-pin').value.trim();
+  if(!nombre){alert('El nombre es obligatorio.');return;}
+  if(pin.length<4){alert('El PIN debe tener al menos 4 dígitos.');return;}
+  var rol=document.getElementById('mu-rol-admin').checked?'admin':'trabajadora';
+  var pisos=[];
+  if(rol==='admin'){pisos=TODOS_PISOS.slice();}
+  else{PISOS.forEach(function(p){var chk=document.getElementById('mup-'+p.id);if(chk&&chk.checked)pisos.push(p.id);});}
+  if(_uEditId){
+    var u=getU(_uEditId);
+    if(u){u.nombre=nombre;u.pin=pin;u.rol=rol;u.pisos=pisos;}
+    if(usuarioActual&&usuarioActual.id===_uEditId){
+      usuarioActual=u;guardarSesion(u);
+      document.getElementById('hdr-unom').textContent=u.nombre+(u.rol==='admin'?' 👑':'');
+    }
+  } else {
+    usuarios.push({id:'u'+Date.now(),nombre:nombre,pin:pin,rol:rol,pisos:pisos});
+  }
+  svU();cerrarModal('usr');renderUsuarios();
+}
+function eliminarUsuario(uid){
+  var u=getU(uid);if(!u) return;
+  var admins=0;for(var i=0;i<usuarios.length;i++){if(usuarios[i].rol==='admin')admins++;}
+  if(u.rol==='admin'&&admins<=1){alert('No puedes eliminar el único administrador.');return;}
+  if(!confirm('¿Eliminar "'+u.nombre+'"?')) return;
+  for(var j=0;j<usuarios.length;j++){if(usuarios[j].id===uid){usuarios.splice(j,1);break;}}
+  svU();renderUsuarios();
+}
+
+// CERRAR MODALES
+function cerrarModal(which){
+  var ids=['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap'];
+  if(which){var el=document.getElementById('modal-'+which+'-wrap');if(el)el.classList.remove('open');}
+  else{ids.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('open');});}
+  modalCtx=null;
+}
+
+// NAVEGACIÓN
+function cambiarMes(d){mesActual+=d;if(mesActual<0){mesActual=11;anioActual--;}if(mesActual>11){mesActual=0;anioActual++;}actualizarMesLbl();renderAll();}
+function irMesActual(){mesActual=new Date().getMonth();anioActual=new Date().getFullYear();actualizarMesLbl();renderAll();}
+function actualizarMesLbl(){document.getElementById('mes-lbl').textContent=MESES[mesActual]+' '+anioActual;}
+function cambiarAnio(d){anioAnual+=d;renderAnual();}
+
+// RENDER ALL
+function renderAll(){
+  if(esAdmin()) renderDashboard();
+  PISOS.forEach(function(p){if(tienePiso(p.id)) renderPisoView(p.id);});
+  renderAlertas();
+  if(esAdmin()){renderHistorial();renderAnual();renderUsuarios();}
+  actualizarBadges();
+}
+
+// DASHBOARD
+function renderDashboard(){
+  var totContab=0,totRecog=0,totPend=0,cContab=0,cRecog=0,cPend=0;
+  PISOS.forEach(function(p){
+    var c=calcPiso(p.id,anioActual,mesActual);
+    totContab+=c.contab;totRecog+=c.recog;totPend+=c.pendiente;
+    p.habs.forEach(function(hab,hIdx){
+      if(isVacia(p.id,hIdx)) return;
+      for(var s=0;s<5;s++){
+        if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
+        var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
+        var tot=getTot(data);
+        var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+        if(est==='contabilizada') cContab++;
+        else if(est==='recogida'&&(tot>0||data.done)) cRecog++;
+        else cPend++;
+      }
+    });
+  });
+  var pct=totContab+totRecog+totPend>0?Math.round(totContab/(totContab+totRecog+totPend)*100):0;
+  var el=document.getElementById('view-dashboard');if(!el) return;
+  el.innerHTML='<div class="stats-grid">'
+    +'<div class="stat v"><div class="lbl">✅ Contabilizado</div><div class="val" style="color:var(--verde-dark)">€'+totContab.toLocaleString()+'</div><div class="sub">'+cContab+' semanas confirmadas</div></div>'
+    +'<div class="stat a"><div class="lbl">📦 Recogido (pdte.)</div><div class="val" style="color:var(--ambar-dark)">€'+totRecog.toLocaleString()+'</div><div class="sub">'+cRecog+' sem. por contabilizar</div></div>'
+    +'<div class="stat r"><div class="lbl">✗ Sin cobrar</div><div class="val" style="color:var(--rojo-dark)">€'+totPend.toLocaleString()+'</div><div class="sub">'+cPend+' semanas pendientes</div></div>'
+    +'<div class="stat"><div class="lbl">% Contabilizado</div><div class="val" style="color:var(--azul-dark)">'+pct+'%</div><div class="sub">del total esperado</div></div>'
+    +'</div>'
+    +'<div class="pisos-grid">'+PISOS.map(function(p){
+      var c=calcPiso(p.id,anioActual,mesActual);
+      var pct2=c.esperado>0?Math.round((c.contab+c.recog)/c.esperado*100):0;
+      var chips=p.habs.map(function(h,hIdx){
+        if(isVacia(p.id,hIdx)) return '<div class="chip v">VACÍA</div>';
+        var nombre=getNombre(p.id,hIdx).split(' ')[0];
+        var tieneContab=false,tieneRecog=false;
+        for(var s=0;s<5;s++){
+          if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
+          var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
+          var tot=getTot(data);
+          var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+          if(est==='contabilizada') tieneContab=true;
+          else if(est==='recogida'&&(tot>0||data.done)) tieneRecog=true;
+        }
+        return '<div class="chip '+(tieneContab?'c':tieneRecog?'r':'n')+'">'+nombre+'</div>';
+      }).join('');
+      return '<div class="piso-card" onclick="mostrarVista(\'piso-'+p.id+'\')"><h3>🏠 '+p.nombre+'</h3>'
+        +'<div class="prog-bar"><div class="prog-fill contab" style="width:'+Math.round(c.contab/(c.esperado||1)*100)+'%"></div></div>'
+        +'<div style="font-size:.71rem;color:var(--suave);margin-bottom:5px">'+pct2+'% cobrado'+(c.recog>0?' · 📦 €'+c.recog.toLocaleString()+' por contabilizar':'')+'</div>'
+        +'<div class="chips">'+chips+'</div>'
+        +'<div class="piso-footer"><span style="color:var(--verde-dark);font-weight:700">✅ €'+c.contab.toLocaleString()+'</span>'
+        +(c.recog>0?'<span style="color:var(--ambar-dark)">📦 €'+c.recog.toLocaleString()+'</span>':'')
+        +(c.pendiente>0?'<span style="color:var(--rojo-dark)">✗ €'+c.pendiente.toLocaleString()+'</span>':'')
+        +'</div></div>';
+    }).join('')+'</div>';
+}
+
+// VISTA PISO
+function renderPisoView(pid){
+  var piso=PISOS[pid];
+  var c=calcPiso(pid,anioActual,mesActual);
+  var neto4=piso.habs.reduce(function(a,h){return a+h.p;},0)*4-piso.gastos;
+  var neto5=piso.habs.reduce(function(a,h){return a+h.p;},0)*5-piso.gastos;
+  var el=document.getElementById('view-piso-'+pid);if(!el) return;
+  var semHdrs='';
+  for(var s=0;s<5;s++){
+    var act=isSemActiva(anioActual,mesActual,pid,s);
+    semHdrs+='<th class="sem-h" style="'+(act?'':'opacity:.45')+'">SEM '+(s+1)+(esAdmin()?' <button class="sem-toggle-btn" onclick="toggleSem('+pid+','+s+')">'+(act?'✓':'○')+'</button>':'')+'</th>';
+  }
+  var totSems=[0,0,0,0,0];
+  var filas='';
+  piso.habs.forEach(function(hab,hIdx){
+    var vacia=isVacia(pid,hIdx);
+    var nombre=getNombre(pid,hIdx);
+    var reservaImp=getReserva(pid,hIdx);
+    var celdas='';
+    for(var s2=0;s2<5;s2++){
+      var act2=isSemActiva(anioActual,mesActual,pid,s2);
+      if(vacia){celdas+='<td style="text-align:center;color:#cbd5e1;'+(act2?'':'opacity:.3')+'">—</td>';continue;}
+      var data=getPagoData(anioActual,mesActual,pid,hIdx,s2);
+      var tot=getTot(data);
+      var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+      var isParcial=!data.done&&tot>0&&tot<hab.p;
+      if(est!=='pendiente') totSems[s2]+=tot>0?tot:hab.p;
+      var pct=hab.p>0?Math.min(100,Math.round(tot/hab.p*100)):0;
+      var notas=data.parciales.filter(function(p){return p.nota;}).map(function(p){return '€'+p.imp+' '+p.nota;}).join(' + ');
+      var label=est==='pendiente'?'✗ €'+hab.p:est==='contabilizada'?'✅ '+(tot>0?'€'+tot:'€'+hab.p):isParcial?'📦 €'+tot+'/€'+hab.p:'📦 €'+(tot>0?tot:hab.p);
+      celdas+='<td class="'+(act2?'':'sem-disabled')+'"><div class="celda-pago"><div class="pago-row-top">'
+        +'<button class="pago-btn '+(est==='pendiente'?'pendiente':est==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+s2+')"><span>'+label+'</span><span style="font-size:.7rem;opacity:.6">✎</span></button>'
+        +(est!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+s2+')" title="Borrar">✕</button>':'')
+        +'</div>'
+        +(isParcial?'<div class="prog-mini"><div class="prog-mini-fill '+est+'" style="width:'+pct+'%"></div></div>':'')
+        +(notas?'<div class="nota-display">📝 '+notas+'</div>':'')
+        +'</div></td>';
+    }
+    var resHtml=reservaImp>0
+      ?'<span class="reserva-tag" onclick="abrirModalReserva('+pid+','+hIdx+')">RESERVA €'+reservaImp+'</span>'
+      :'<button class="btn-add-reserva" onclick="abrirModalReserva('+pid+','+hIdx+')">+ Reserva</button>';
+    filas+='<tr style="'+(vacia?'opacity:.4':'')+'"><td><div class="nombre-wrap"><span style="font-weight:700">'+(vacia?'<em style="color:#94a3b8">VACÍA</em>':nombre)+'</span><button class="btn-edit-n" onclick="abrirModalNombre('+pid+','+hIdx+')" title="Editar">✏</button></div></td>'
+      +'<td style="color:var(--azul-dark);font-weight:700">'+(vacia?'—':'€'+hab.p)+'</td>'
+      +'<td style="color:var(--suave);font-size:.79rem">'+(vacia?'—':hab.d)+'</td>'
+      +'<td>'+resHtml+'</td>'+celdas+'</tr>';
+  });
+  var totCeldas='';
+  for(var sc=0;sc<5;sc++){var actc=isSemActiva(anioActual,mesActual,pid,sc);totCeldas+='<td class="'+(actc?'':'sem-disabled')+'">€'+totSems[sc].toLocaleString()+'</td>';}
+
+  var botonesRow='<div class="btns-row">'
+    +'<button class="btn-ambar" onclick="marcarPisoRecogido('+pid+')">📦 Todas recogidas</button>'
+    +(esAdmin()?'<button class="btn-green" onclick="marcarPisoContab('+pid+')">✅ Todas contabilizadas</button>':'')
+    +(esAdmin()?'<button class="btn-outline" onclick="limpiarMes('+pid+')">🗑 Limpiar mes</button>':'')
+    +'</div>';
+  var hint=esTrab()
+    ?'<div style="margin-bottom:10px;padding:7px 12px;background:var(--ambar-bg);border-radius:8px;font-size:.78rem;color:var(--ambar-dark);">📦 Puedes marcar pagos como <strong>Recogidos</strong>. Rubén confirmará el estado contabilizado.</div>'
+    :'<div style="margin-bottom:10px;padding:7px 12px;background:var(--azul-bg);border-radius:8px;font-size:.78rem;color:var(--azul-dark);">💡 📦 Recogida = socia cobró · ✅ Contabilizada = Rubén recibió · ✎ editar · ✕ borrar</div>';
+
+  el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab · Gastos fijos: €'+piso.gastos.toLocaleString()+'/mes</div></div>'+botonesRow+'</div>'
+    +hint
+    +'<div class="tabla-wrap"><table class="tabla"><thead>'
+    +'<tr class="th1"><th colspan="4">'+MESES[mesActual]+' '+anioActual+'</th>'+semHdrs+'</tr>'
+    +'<tr class="th2"><th class="info-c">Inquilina</th><th class="info-c">Precio</th><th class="info-c">Día pago</th><th class="info-c">Reserva</th><th>Sem 1</th><th>Sem 2</th><th>Sem 3</th><th>Sem 4</th><th>Sem 5</th></tr>'
+    +'</thead><tbody>'+filas+'</tbody><tfoot><tr><td colspan="4">TOTAL SEMANA</td>'+totCeldas+'</tr></tfoot></table></div>'
+    +'<div class="resumen-row">'
+    +'<div class="res-card"><div class="rl">✅ Contabilizado</div><div class="rv" style="color:var(--verde-dark)">€'+c.contab.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">📦 Recogido</div><div class="rv" style="color:var(--ambar-dark)">€'+c.recog.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">✗ Pendiente</div><div class="rv" style="color:var(--rojo-dark)">€'+c.pendiente.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">Neto 4 sem.</div><div class="rv" style="color:var(--verde-dark)">€'+neto4.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">Neto 5 sem.</div><div class="rv" style="color:var(--azul-dark)">€'+neto5.toLocaleString()+'</div></div>'
+    +'</div>';
+}
+
+function marcarPisoRecogido(pid){
+  var piso=PISOS[pid];
+  piso.habs.forEach(function(hab,hIdx){
+    if(isVacia(pid,hIdx)) return;
+    for(var s=0;s<5;s++){
+      if(!isSemActiva(anioActual,mesActual,pid,s)) continue;
+      var data=getPagoData(anioActual,mesActual,pid,hIdx,s);
+      var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+      if(est==='pendiente'){pagos[pk(anioActual,mesActual,pid,hIdx,s)]={parciales:[{imp:hab.p,nota:''}],done:false,estado:'recogida'};}
+    }
+  });
+  sv('crm4_pagos',pagos);renderAll();
+}
+function marcarPisoContab(pid){
+  if(!esAdmin()) return;
+  var piso=PISOS[pid];
+  piso.habs.forEach(function(hab,hIdx){
+    if(isVacia(pid,hIdx)) return;
+    for(var s=0;s<5;s++){
+      if(!isSemActiva(anioActual,mesActual,pid,s)) continue;
+      var data=getPagoData(anioActual,mesActual,pid,hIdx,s);
+      if(data.parciales.length===0&&!data.done){data={parciales:[{imp:hab.p,nota:''}],done:false};}
+      data.estado='contabilizada';pagos[pk(anioActual,mesActual,pid,hIdx,s)]=data;
+    }
+  });
+  sv('crm4_pagos',pagos);renderAll();
+}
+function toggleSem(pid,sIdx){if(!esAdmin()) return;semsAct[sk(anioActual,mesActual,pid,sIdx)]=!isSemActiva(anioActual,mesActual,pid,sIdx);sv('crm4_sems',semsAct);renderAll();}
+function limpiarMes(pid){
+  if(!esAdmin()) return;
+  if(!confirm('¿Borrar pagos de '+PISOS[pid].nombre+' en '+MESES[mesActual]+' '+anioActual+'?')) return;
+  PISOS[pid].habs.forEach(function(_,hIdx){for(var s=0;s<5;s++)delete pagos[pk(anioActual,mesActual,pid,hIdx,s)];});
+  sv('crm4_pagos',pagos);renderAll();
+}
+
+// ALERTAS
+function renderAlertas(){
+  var html='',nRecog=0,nPend=0;
+  PISOS.forEach(function(p){
+    if(!tienePiso(p.id)) return;
+    p.habs.forEach(function(hab,hIdx){
+      if(isVacia(p.id,hIdx)) return;
+      var nombre=getNombre(p.id,hIdx);
+      for(var s=0;s<5;s++){
+        if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
+        var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
+        var tot=getTot(data);
+        var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+        if(est==='contabilizada') return;
+        if(est==='recogida'){
+          nRecog++;
+          html+='<div class="alerta-item recogida"><div class="al-info"><div class="al-nom">📦 '+nombre+' · Sem.'+(s+1)+'</div><div class="al-sub">🏠 '+p.nombre+' · Recogida, pendiente contabilizar</div></div><div class="al-right"><div class="al-imp recogida">€'+(tot>0?tot:hab.p)+'</div>'+(esAdmin()?'<button class="btn-green" style="font-size:.73rem;padding:6px 9px;" onclick="abrirModalPago('+p.id+','+hIdx+','+s+')">✅ Contabilizar</button>':'')+'</div></div>';
+        } else {
+          nPend++;
+          html+='<div class="alerta-item"><div class="al-info"><div class="al-nom">✗ '+nombre+' · Sem.'+(s+1)+'</div><div class="al-sub">🏠 '+p.nombre+' · '+hab.d+' · Sin cobrar</div></div><div class="al-right"><div class="al-imp">€'+hab.p+'</div><button class="btn-ambar" style="font-size:.73rem;padding:6px 9px;" onclick="abrirModalPago('+p.id+','+hIdx+','+s+')">📦 Recogida</button></div></div>';
+        }
+      }
+    });
+  });
+  var el=document.getElementById('view-alertas');if(!el) return;
+  el.innerHTML='<h2 style="margin-bottom:10px;font-size:1.05rem;">🚨 Pendientes — '+MESES[mesActual]+' '+anioActual+'</h2>'
+    +(nRecog>0||nPend>0?'<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">'+(nPend>0?'<div style="background:var(--rojo-bg);color:var(--rojo-dark);padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:700;">✗ '+nPend+' sin cobrar</div>':'')+(nRecog>0?'<div style="background:var(--ambar-bg);color:var(--ambar-dark);padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:700;">📦 '+nRecog+' por contabilizar</div>':'')+'</div>':'')
+    +(html||'<div style="text-align:center;padding:50px;color:var(--suave)"><div style="font-size:3rem">✅</div><p style="margin-top:10px;font-size:.95rem;font-weight:700">¡Todo al día!</p></div>');
+}
+
+// RESUMEN ANUAL
+function renderAnual(){
+  var el=document.getElementById('view-anual');if(!el) return;
+  var ahora=new Date();var mesHoy=ahora.getMonth(),anioHoy=ahora.getFullYear();
+  var thMeses='<th class="mes-head row-lbl">Concepto</th>';
+  for(var m=0;m<12;m++){var esMesHoy=m===mesHoy&&anioAnual===anioHoy;thMeses+='<th class="mes-head'+(esMesHoy?' actual':'')+'">'+MESES_CORTO[m]+(esMesHoy?' ★':'')+'</th>';}
+  thMeses+='<th class="mes-head">TOTAL</th>';
+  var rows={contab:new Array(12).fill(0),recog:new Array(12).fill(0),gastosFijos:new Array(12).fill(0),gastosEx:new Array(12).fill(0),neto:new Array(12).fill(0)};
+  for(var m2=0;m2<12;m2++){var d=calcAnualMes(anioAnual,m2);rows.contab[m2]=d.contab;rows.recog[m2]=d.recog;rows.gastosFijos[m2]=d.gastosFijos;rows.gastosEx[m2]=d.gastosEx;rows.neto[m2]=d.neto;}
+  function tot(arr){return arr.reduce(function(a,b){return a+b;},0);}
+  function fmtV(v){return v===0?'—':'€'+Math.abs(v).toLocaleString();}
+  function tdM(val,m3,cls){var eM=m3===mesHoy&&anioAnual===anioHoy;return '<td class="'+(eM?'mes-actual':'')+(cls?' '+cls:'')+'">'+fmtV(val)+'</td>';}
+  var rC='<tr><td class="row-lbl">✅ Contabilizado</td>'+rows.contab.map(function(v,m3){return tdM(v,m3,'');}).join('')+'<td style="font-weight:700;color:var(--verde-dark)">€'+tot(rows.contab).toLocaleString()+'</td></tr>';
+  var rR='<tr><td class="row-lbl">📦 Recogido (pdte.)</td>'+rows.recog.map(function(v,m3){return tdM(v,m3,'');}).join('')+'<td style="font-weight:700;color:var(--ambar-dark)">€'+tot(rows.recog).toLocaleString()+'</td></tr>';
+  var rGF='<tr><td class="row-lbl">🏠 Gastos fijos</td>'+rows.gastosFijos.map(function(v,m3){return tdM(v,m3,'');}).join('')+'<td style="font-weight:700;color:var(--rojo-dark)">€'+tot(rows.gastosFijos).toLocaleString()+'</td></tr>';
+  var rGE='<tr><td class="row-lbl">💸 Gastos extra</td>'+rows.gastosEx.map(function(v,m3){
+    var eM=m3===mesHoy&&anioAnual===anioHoy;var ge=getGastosExtraMes(anioAnual,m3);
+    var cell='<div class="gasto-cell">';
+    if(v>0) cell+='<span class="gasto-sum">€'+v+'</span>';
+    if(ge.length>0){cell+='<span class="gasto-items">'+ge.slice(0,2).map(function(g){return g.concepto||'Gasto';}).join(', ')+(ge.length>2?'...':'')+'</span>';}
+    cell+='<button class="btn-add-gasto" onclick="abrirModalGe('+anioAnual+','+m3+')">+ gasto</button></div>';
+    return '<td class="'+(eM?'mes-actual':'')+'" style="min-width:100px;">'+cell+'</td>';
+  }).join('')+'<td style="font-weight:700;color:var(--rojo-dark)">€'+tot(rows.gastosEx).toLocaleString()+'</td></tr>';
+  var rN='<tr class="neto-row"><td class="row-lbl" style="font-weight:800;">💰 NETO</td>'+rows.neto.map(function(v,m3){var eM=m3===mesHoy&&anioAnual===anioHoy;return '<td class="'+(eM?'mes-actual ':'')+(v>=0?'pos':'neg')+'" style="font-weight:800;">'+(v===0?'—':(v>=0?'+':'')+'€'+v.toLocaleString())+'</td>';}).join('')+'<td class="'+(tot(rows.neto)>=0?'pos':'neg')+'" style="font-weight:800;">'+(tot(rows.neto)>=0?'+':'')+'€'+tot(rows.neto).toLocaleString()+'</td></tr>';
+  el.innerHTML='<div class="anual-hdr"><h2>📈 Resumen anual contable</h2><div class="anio-nav"><button onclick="cambiarAnio(-1)">◀</button><div class="anio-lbl">'+anioAnual+'</div><button onclick="cambiarAnio(1)">▶</button></div></div>'
+    +'<div class="anual-leyenda"><div class="ley-item"><div class="ley-dot" style="background:var(--verde)"></div> Contabilizado</div><div class="ley-item"><div class="ley-dot" style="background:var(--ambar)"></div> Recogido</div><div class="ley-item"><div class="ley-dot" style="background:var(--rojo)"></div> Gastos</div></div>'
+    +'<div class="anual-wrap"><table class="anual-table"><thead><tr>'+thMeses+'</tr></thead><tbody>'+rC+rR+rGF+rGE+rN+'</tbody></table></div>'
+    +'<div style="font-size:.75rem;color:var(--suave);padding:8px 12px;background:var(--gris-bg);border-radius:8px;">⚠️ El neto usa solo lo <strong>Contabilizado</strong>. Clic en "+ gasto" para añadir gastos extra.</div>';
+}
+
+// HISTORIAL
+function renderHistorial(){
+  var fp=document.getElementById('filtro-piso');var fe=document.getElementById('filtro-estado');
+  var fpv=fp?fp.value:'';var fev=fe?fe.value:'';
+  var rows='';
+  Object.keys(pagos).sort().reverse().forEach(function(k){
+    var pts=k.split('-');if(pts.length!==5) return;
+    var a=parseInt(pts[0]),m=parseInt(pts[1]),pid=parseInt(pts[2]),hIdx=parseInt(pts[3]),sIdx=parseInt(pts[4]);
+    var piso=PISOS[pid];if(!piso) return;var hab=piso.habs[hIdx];if(!hab) return;
+    var data=pagos[k];var tot=getTot(data);
+    var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+    var nombre=getNombre(pid,hIdx);
+    if(fpv&&String(pid)!==fpv) return;if(fev&&est!==fev) return;
+    var notas=data.parciales.filter(function(p){return p.nota;}).map(function(p){return '€'+p.imp+'/'+p.nota;}).join(', ');
+    rows+='<tr><td>'+MESES[m]+' '+a+' · Sem.'+(sIdx+1)+'</td><td>'+piso.nombre+'</td><td><strong>'+nombre+'</strong></td><td style="font-weight:700;color:var(--azul-dark)">€'+tot+'</td><td><span class="est-badge '+est+'">'+(est==='contabilizada'?'✅ Contabilizada':est==='recogida'?'📦 Recogida':'✗ Pendiente')+'</span></td><td style="color:var(--suave);font-size:.77rem">'+notas+'</td></tr>';
+  });
+  var tbody=document.getElementById('hist-tbody');
+  if(tbody) tbody.innerHTML=rows||'<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--suave)">Sin registros.</td></tr>';
+}
+
+// USUARIOS PANEL
+function renderUsuarios(){
+  var el=document.getElementById('view-usuarios');if(!el) return;
+  var items=usuarios.map(function(u,i){
+    var col=UCOLORS[i%UCOLORS.length];
+    var ini=u.nombre.charAt(0).toUpperCase();
+    var pisosHtml=u.rol==='admin'
+      ?'<span style="color:var(--suave);font-size:.72rem">Acceso completo a todos los pisos</span>'
+      :(u.pisos.length===0?'<span style="color:var(--rojo);font-size:.72rem">Sin pisos asignados</span>':u.pisos.map(function(pid){return '<span class="upchip">'+PISOS[pid].nombre.split(' ').slice(0,2).join(' ')+'</span>';}).join(''));
+    var admins=0;for(var j=0;j<usuarios.length;j++){if(usuarios[j].rol==='admin')admins++;}
+    var canDel=!(u.rol==='admin'&&admins<=1);
+    return '<div class="usr-item"><div class="usr-av" style="background:'+col+'">'+ini+'</div>'
+      +'<div class="usr-inf"><div class="un">'+u.nombre+'</div><div class="ur">'+(u.rol==='admin'?'👑 Administrador':'👤 Trabajadora')+'</div><div class="usr-pchips">'+pisosHtml+'</div></div>'
+      +'<div class="usr-acts"><button class="btn-ue" onclick="abrirModalUsuario(\''+u.id+'\')">✏ Editar</button>'+(canDel?'<button class="btn-ud" onclick="eliminarUsuario(\''+u.id+'\')">✕</button>':'')+'</div></div>';
+  }).join('');
+  el.innerHTML='<h2 style="margin-bottom:4px;font-size:1.05rem;">👥 Gestión de usuarios</h2>'
+    +'<p style="font-size:.78rem;color:var(--suave);margin-bottom:16px;">Crea usuarios para tu socia y asígnales los pisos. El PIN por defecto del admin es <strong>1111</strong> — cámbialo.</p>'
+    +items
+    +'<button class="btn-add-usr" onclick="abrirModalUsuario(null)">+ Añadir usuario</button>';
+}
+
+// BADGES
+function actualizarBadges(){
+  PISOS.forEach(function(p){
+    var tab=document.getElementById('tab-piso-'+p.id);
+    if(!tab||tab.style.display==='none') return;
+    var nRecog=0,nPend=0;
+    p.habs.forEach(function(hab,hIdx){
+      if(isVacia(p.id,hIdx)) return;
+      for(var s=0;s<5;s++){
+        if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
+        var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
+        var tot=getTot(data);
+        var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+        if(est==='recogida'&&(tot>0||data.done)) nRecog++;
+        else if(est==='pendiente') nPend++;
+      }
+    });
+    var lbl=p.nombre.split(' ').slice(0,2).join(' ');
+    tab.innerHTML=lbl+(nPend>0?'<span class="badge r">'+nPend+'</span>':'')+(nRecog>0?'<span class="badge a">'+nRecog+'</span>':'')+(nPend===0&&nRecog===0?'<span class="badge v">✓</span>':'');
+  });
+  if(!esAdmin()) return;
+  var totPend=0,totRecog=0;
+  PISOS.forEach(function(p){p.habs.forEach(function(hab,hIdx){
+    if(isVacia(p.id,hIdx)) return;
+    for(var s=0;s<5;s++){
+      if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
+      var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
+      var tot=getTot(data);
+      var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+      if(est==='pendiente') totPend++;
+      else if(est==='recogida'&&(tot>0||data.done)) totRecog++;
+    }
+  });});
+  var tabAl=document.getElementById('tab-alertas');
+  if(tabAl) tabAl.innerHTML='🚨 Alertas'+(totPend>0?'<span class="badge r">'+totPend+'</span>':'')+(totRecog>0?'<span class="badge a">'+totRecog+'</span>':'');
+}
+
+// NAVEGACIÓN VISTAS
+function mostrarVista(nombre){
+  if(esTrab()){
+    var soloAdmin=['dashboard','anual','historial','usuarios'];
+    for(var i=0;i<soloAdmin.length;i++){if(soloAdmin[i]===nombre) return;}
+    if(nombre.indexOf('piso-')===0){var pid=parseInt(nombre.replace('piso-',''));if(!tienePiso(pid)) return;}
+  }
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  var v=document.getElementById('view-'+nombre);var t=document.getElementById('tab-'+nombre);
+  if(v) v.classList.add('active');if(t) t.classList.add('active');
+  if(nombre==='historial') renderHistorial();
+  if(nombre==='anual'){anioAnual=anioActual;renderAnual();}
+  if(nombre==='usuarios') renderUsuarios();
+}
+
+// INIT
+function init(){
+  var main=document.getElementById('main-content');
+  var tabs=document.getElementById('tabs-container');
+  var alertaTab=document.getElementById('tab-alertas');
+  var dvD=document.createElement('div');dvD.className='view active';dvD.id='view-dashboard';main.appendChild(dvD);
+  PISOS.forEach(function(p){
+    var tab=document.createElement('div');tab.className='tab';tab.id='tab-piso-'+p.id;
+    tab.textContent=p.nombre;tab.onclick=(function(id){return function(){mostrarVista('piso-'+id);};})(p.id);
+    tabs.insertBefore(tab,alertaTab);
+    var dv=document.createElement('div');dv.className='view';dv.id='view-piso-'+p.id;main.appendChild(dv);
+  });
+  var dvAl=document.createElement('div');dvAl.className='view';dvAl.id='view-alertas';main.appendChild(dvAl);
+  var dvAn=document.createElement('div');dvAn.className='view';dvAn.id='view-anual';main.appendChild(dvAn);
+  var dvH=document.createElement('div');dvH.className='view';dvH.id='view-historial';
+  dvH.innerHTML='<h2 style="margin-bottom:13px;font-size:1.05rem;">📋 Historial de pagos</h2>'
+    +'<div class="hist-filters"><select id="filtro-piso" onchange="renderHistorial()" style="font-size:16px"><option value="">Todos los pisos</option>'+PISOS.map(function(p){return '<option value="'+p.id+'">'+p.nombre+'</option>';}).join('')+'</select>'
+    +'<select id="filtro-estado" onchange="renderHistorial()" style="font-size:16px"><option value="">Todos los estados</option><option value="contabilizada">✅ Contabilizada</option><option value="recogida">📦 Recogida</option></select></div>'
+    +'<table class="hist-table"><thead><tr><th>Mes/Sem.</th><th>Piso</th><th>Inquilina</th><th>Total</th><th>Estado</th><th>Notas</th></tr></thead><tbody id="hist-tbody"></tbody></table>';
+  main.appendChild(dvH);
+  var dvU=document.createElement('div');dvU.className='view';dvU.id='view-usuarios';main.appendChild(dvU);
+  if(checkSesion()){arrancarApp();}else{mostrarLogin();}
+}
+
+window.onload=function(){
+  try{
+    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.addEventListener('click',function(e){if(e.target===e.currentTarget)cerrarModal();});
+    });
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarModal();});
+    init();
+  }catch(e){
+    var m=document.getElementById('main-content');
+    if(m) m.innerHTML='<div style="padding:24px;background:#1a0000;border:1px solid #cc0000;border-radius:12px;margin:16px;font-size:15px;color:#f0f0f0"><strong>Error al iniciar</strong><br><small>'+(e.message||e)+'</small><br><br><button onclick="location.reload()" style="padding:12px 20px;background:#cc0000;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer">Reintentar</button></div>';
+  }
+};
+</script>
+</body>
+</html>
