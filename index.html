@@ -449,7 +449,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
         </label>
         <label class="rol-opt sel-t" id="rolopt-t" onclick="setTimeout(toggleRolUI,10)">
           <input type="radio" name="mu-rol" id="mu-rol-trab" value="trabajadora" checked>
-          <span>👤 Trabajadora</span>
+          <span>👤 Socio colaborador</span>
         </label>
       </div>
     </div>
@@ -471,14 +471,14 @@ window.onerror=function(msg,src,line){
 };
 
 var PISOS=[
-  {id:0,nombre:"Francia 15",gastos:1608,habs:[{n:"CRISTINA",p:200,d:"VIERNES",r:50},{n:"CHANEL",p:260,d:"VIERNES",r:0},{n:"ESTHER",p:200,d:"MARTES",r:0},{n:"BELLA",p:230,d:"MX",r:0}]},
-  {id:1,nombre:"Francia 17",gastos:1985,habs:[{n:"EVA",p:260,d:"VIERNES",r:0},{n:"ANDREA",p:200,d:"SÁBADO",r:50},{n:"CAROLINA",p:200,d:"LUNES",r:50},{n:"KATY",p:250,d:"MARTES",r:0}]},
-  {id:2,nombre:"Alfred Torán 7",gastos:1293,habs:[{n:"PAULA",p:260,d:"JUEVES",r:0},{n:"CAMILA",p:200,d:"LUNES",r:50},{n:"LORENA",p:200,d:"VIERNES",r:0},{n:"LUCY",p:220,d:"LUNES",r:0}]},
-  {id:3,nombre:"Francia 45",gastos:1737,habs:[{n:"ASCENSION",p:260,d:"MARTES",r:0},{n:"ANA",p:230,d:"SÁBADO",r:50},{n:"LETI",p:200,d:"MARTES",r:0},{n:"THAIS",p:200,d:"VIERNES",r:50}]},
-  {id:4,nombre:"Francia 65",gastos:2055,habs:[{n:"VEGA",p:260,d:"JUEVES",r:0},{n:"MARCELA",p:200,d:"LUNES",r:50},{n:"MAR",p:200,d:"MX",r:0},{n:"ALEJANDRA",p:230,d:"VIERNES",r:50},{n:"ANA",p:220,d:"LUNES",r:50}]},
-  {id:5,nombre:"Amadeo Roca 3",gastos:1822,habs:[{n:"MARIANA",p:260,d:"MX",r:0},{n:"ILONA",p:200,d:"JUEVES",r:0},{n:"ELENA",p:200,d:"LUNES",r:0},{n:"VICTORIA",p:230,d:"VIERNES",r:50}]},
-  {id:6,nombre:"Poeta Quintana 23",gastos:1599,habs:[{n:"SANDRA",p:280,d:"VIERNES",r:0},{n:"ALICIA",p:200,d:"DOMINGO",r:50},{n:"PATRICIA",p:220,d:"JUEVES",r:50},{n:"ANGIE",p:230,d:"DOMINGO",r:50}]},
-  {id:7,nombre:"Rambla Méndez N.",gastos:1750,habs:[{n:"ELENA",p:300,d:"MARTES",r:50},{n:"VALENTINA",p:250,d:"MX",r:50},{n:"ANNY",p:220,d:"JUEVES",r:50},{n:"MARIA",p:220,d:"DOMINGO",r:50},{n:"LORENA",p:230,d:"SÁBADO",r:50}]}
+  {id:0,nombre:"Francia 15",gastos:1325.79,habs:[{n:"CRISTINA",p:200,d:"VIERNES",r:50},{n:"CHANEL",p:260,d:"VIERNES",r:0},{n:"ESTHER",p:200,d:"MARTES",r:0},{n:"BELLA",p:230,d:"MX",r:0}]},
+  {id:1,nombre:"Francia 17",gastos:1800,habs:[{n:"EVA",p:260,d:"VIERNES",r:0},{n:"ANDREA",p:200,d:"SÁBADO",r:50},{n:"CAROLINA",p:200,d:"LUNES",r:50},{n:"KATY",p:250,d:"MARTES",r:0}]},
+  {id:2,nombre:"Alfred Torán 7",gastos:975,habs:[{n:"PAULA",p:260,d:"JUEVES",r:0},{n:"CAMILA",p:200,d:"LUNES",r:50},{n:"LORENA",p:200,d:"VIERNES",r:0},{n:"LUCY",p:220,d:"LUNES",r:0}]},
+  {id:3,nombre:"Francia 45",gastos:1532.25,habs:[{n:"ASCENSION",p:260,d:"MARTES",r:0},{n:"ANA",p:230,d:"SÁBADO",r:50},{n:"LETI",p:200,d:"MARTES",r:0},{n:"THAIS",p:200,d:"VIERNES",r:50}]},
+  {id:4,nombre:"Francia 65",gastos:1800,habs:[{n:"VEGA",p:260,d:"JUEVES",r:0},{n:"MARCELA",p:200,d:"LUNES",r:50},{n:"MAR",p:200,d:"MX",r:0},{n:"ALEJANDRA",p:230,d:"VIERNES",r:50},{n:"ANA",p:220,d:"LUNES",r:50}]},
+  {id:5,nombre:"Amadeo Roca 3",gastos:1700,habs:[{n:"MARIANA",p:260,d:"MX",r:0},{n:"ILONA",p:200,d:"JUEVES",r:0},{n:"ELENA",p:200,d:"LUNES",r:0},{n:"VICTORIA",p:230,d:"VIERNES",r:50}]},
+  {id:6,nombre:"Poeta Quintana 23",gastos:1400,habs:[{n:"SANDRA",p:280,d:"VIERNES",r:0},{n:"ALICIA",p:200,d:"DOMINGO",r:50},{n:"PATRICIA",p:220,d:"JUEVES",r:50},{n:"ANGIE",p:230,d:"DOMINGO",r:50}]},
+  {id:7,nombre:"Rambla Méndez N.",gastos:1500,desde:{anio:2026,mes:2},habs:[{n:"ELENA",p:300,d:"MARTES",r:50},{n:"VALENTINA",p:250,d:"MX",r:50},{n:"ANNY",p:220,d:"JUEVES",r:50},{n:"MARIA",p:220,d:"DOMINGO",r:50},{n:"LORENA",p:230,d:"SÁBADO",r:50}]}
 ];
 var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 var MESES_CORTO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -512,7 +512,6 @@ var _uEditId=null;
 
 function svU(){sv('crm4_users',usuarios);}
 
-// FIREBASE INIT
 (function(){
   try{
     var app=firebase.initializeApp({
@@ -526,28 +525,14 @@ function svU(){sv('crm4_users',usuarios);}
     });
     _fbDb=firebase.database(app);
     _fbDb.ref('crm4').on('value',function(snap){
-      var d=snap.val()||{};
-      var ch=false;
-      function upd(k,cur){
-        if(d[k]==null) return cur;
-        var ns=JSON.stringify(d[k]);
-        if(ns!==JSON.stringify(cur)){
-          ch=true;
-          try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}
-          return d[k];
-        }
-        return cur;
-      }
-      pagos=upd('crm4_pagos',pagos);
-      nombres=upd('crm4_nombres',nombres);
-      reservas=upd('crm4_reservas',reservas);
-      semsAct=upd('crm4_sems',semsAct);
+      var d=snap.val()||{};var ch=false;
+      function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}
+      pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);
+      reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);
       gastosExtra=upd('crm4_gastos',gastosExtra);
-      var nu=upd('crm4_users',usuarios);
-      if(nu!==usuarios){usuarios=nu;}
+      var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}
       if(ch&&usuarioActual){renderAll();}
     });
-    console.log('Firebase conectado');
   }catch(e){console.log('Firebase error:',e);}
 })();
 
@@ -582,7 +567,7 @@ function renderUcards(){
   c.innerHTML=usuarios.map(function(u,i){
     var col=UCOLORS[i%UCOLORS.length];
     var ini=u.nombre.charAt(0).toUpperCase();
-    return '<button class="ucard" onclick="selUser(\''+u.id+'\')"><div class="ucard-av" style="background:'+col+'">'+ini+'</div><div><div class="ucard-nm">'+u.nombre+'</div><div class="ucard-rl '+(u.rol==='admin'?'rl-admin':'rl-trab')+'">'+(u.rol==='admin'?'👑 Administrador':'👤 Trabajadora')+'</div></div></button>';
+    return '<button class="ucard" onclick="selUser(\''+u.id+'\')"><div class="ucard-av" style="background:'+col+'">'+ini+'</div><div><div class="ucard-nm">'+u.nombre+'</div><div class="ucard-rl '+(u.rol==='admin'?'rl-admin':'rl-trab')+'">'+(u.rol==='admin'?'👑 Administrador':'👤 Socio colaborador')+'</div></div></button>';
   }).join('');
 }
 function selUser(id){
@@ -693,7 +678,11 @@ function calcPiso(pid,a,m){
 }
 function calcAnualMes(a,m){
   var contab=0,recog=0,gastosFijos=0,gastosEx=sumGastosExtra(a,m);
-  PISOS.forEach(function(p){var c=calcPiso(p.id,a,m);contab+=c.contab;recog+=c.recog;gastosFijos+=p.gastos;});
+  PISOS.forEach(function(p){
+    var activo=!p.desde||(a>p.desde.anio||(a===p.desde.anio&&m>=p.desde.mes));
+    var c=calcPiso(p.id,a,m);contab+=c.contab;recog+=c.recog;
+    if(activo)gastosFijos+=p.gastos;
+  });
   return{contab:contab,recog:recog,gastosFijos:gastosFijos,gastosEx:gastosEx,neto:contab-gastosFijos-gastosEx};
 }
 
@@ -1145,7 +1134,7 @@ function renderUsuarios(){
     var admins=0;for(var j=0;j<usuarios.length;j++){if(usuarios[j].rol==='admin')admins++;}
     var canDel=!(u.rol==='admin'&&admins<=1);
     return '<div class="usr-item"><div class="usr-av" style="background:'+col+'">'+ini+'</div>'
-      +'<div class="usr-inf"><div class="un">'+u.nombre+'</div><div class="ur">'+(u.rol==='admin'?'👑 Administrador':'👤 Trabajadora')+'</div><div class="usr-pchips">'+pisosHtml+'</div></div>'
+      +'<div class="usr-inf"><div class="un">'+u.nombre+'</div><div class="ur">'+(u.rol==='admin'?'👑 Administrador':'👤 Socio colaborador')+'</div><div class="usr-pchips">'+pisosHtml+'</div></div>'
       +'<div class="usr-acts"><button class="btn-ue" onclick="abrirModalUsuario(\''+u.id+'\')">✏ Editar</button>'+(canDel?'<button class="btn-ud" onclick="eliminarUsuario(\''+u.id+'\')">✕</button>':'')+'</div></div>';
   }).join('');
   el.innerHTML='<h2 style="margin-bottom:4px;font-size:1.05rem;">👥 Gestión de usuarios</h2>'
