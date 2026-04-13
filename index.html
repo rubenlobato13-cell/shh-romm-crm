@@ -512,29 +512,7 @@ var _uEditId=null;
 
 function svU(){sv('crm4_users',usuarios);}
 
-(function(){
-  try{
-    var app=firebase.initializeApp({
-      apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",
-      authDomain:"shh-room-crm.firebaseapp.com",
-      databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId:"shh-room-crm",
-      storageBucket:"shh-room-crm.firebasestorage.app",
-      messagingSenderId:"1032498413641",
-      appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"
-    });
-    _fbDb=firebase.database(app);
-    _fbDb.ref('crm4').on('value',function(snap){
-      var d=snap.val()||{};var ch=false;
-      function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}
-      pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);
-      reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);
-      gastosExtra=upd('crm4_gastos',gastosExtra);
-      var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}
-      if(ch&&usuarioActual){renderAll();}
-    });
-  }catch(e){console.log('Firebase error:',e);}
-})();
+(function(){try{var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});_fbDb=firebase.database(app);_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});}catch(e){console.log('Firebase error:',e);}})();
 
 function getU(id){for(var i=0;i<usuarios.length;i++){if(usuarios[i].id===id)return usuarios[i];}return null;}
 function getSocioPiso(pid){for(var i=0;i<usuarios.length;i++){var u=usuarios[i];if(u.rol!=='admin'){for(var j=0;j<u.pisos.length;j++){if(u.pisos[j]===pid)return u;}}}return null;}
@@ -779,10 +757,11 @@ function quitarReserva(){
 }
 
 // MODAL GASTOS EXTRA
-function abrirModalGe(a,m){
-  modalCtx={a:a,m:m};
+function abrirModalGe(a,m,pid){
+  modalCtx={a:a,m:m,pid:pid!==undefined?pid:null};
   geEdit=getGastosExtraMes(a,m).map(function(g){return{concepto:g.concepto,imp:g.imp};});
-  document.getElementById('modal-ge-titulo').textContent='➕ Gastos extra — '+MESES[m]+' '+a;
+  var pisoNom=pid!==undefined?' · '+PISOS[pid].nombre:'';
+  document.getElementById('modal-ge-titulo').textContent='💸 Gastos extra'+pisoNom+' — '+MESES[m]+' '+a;
   renderGeList();document.getElementById('modal-ge-wrap').classList.add('open');
 }
 function renderGeList(){
@@ -798,6 +777,7 @@ function guardarGastos(){
   var list=geEdit.filter(function(g){return (parseFloat(g.imp)||0)>0;});
   if(list.length===0){delete gastosExtra[k];}else{gastosExtra[k]=list;}
   sv('crm4_gastos',gastosExtra);cerrarModal('ge');renderAnual();
+  if(ctx.pid!==null&&ctx.pid!==undefined){renderPisoView(ctx.pid);}renderDashboard();
 }
 
 // MODAL USUARIO
@@ -1000,6 +980,7 @@ function renderPisoView(pid){
   var botonesRow='<div class="btns-row">'
     +'<button class="btn-ambar" onclick="marcarPisoRecogido('+pid+')">📦 Todas recogidas</button>'
     +(esAdmin()?'<button class="btn-green" onclick="marcarPisoContab('+pid+')">✅ Todas contabilizadas</button>':'')
+    +(esAdmin()?'<button class="btn-ambar" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">💸 Gastos extra</button>':'')
     +(esAdmin()?'<button class="btn-outline" onclick="limpiarMes('+pid+')">🗑 Limpiar mes</button>':'')
     +'</div>';
   var hint=esTrab()
@@ -1018,6 +999,7 @@ function renderPisoView(pid){
     +'<div class="res-card"><div class="rl">✗ Pendiente</div><div class="rv" style="color:var(--rojo-dark)">€'+c.pendiente.toLocaleString()+'</div></div>'
     +'<div class="res-card"><div class="rl">Neto 4 sem.</div><div class="rv" style="color:var(--verde-dark)">€'+neto4.toLocaleString()+'</div></div>'
     +'<div class="res-card"><div class="rl">Neto 5 sem.</div><div class="rv" style="color:var(--azul-dark)">€'+neto5.toLocaleString()+'</div></div>'
+    +(c.gastosEx>0?'<div class="res-card" style="border:1px solid rgba(245,158,11,.4);"><div class="rl">💸 Gastos extra</div><div class="rv" style="color:var(--ambar-dark)">€'+c.gastosEx.toLocaleString()+'</div></div>':'')
     +'</div>'
     +(function(){
         var socio=getSocioPiso(pid);
