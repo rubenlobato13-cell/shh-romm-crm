@@ -637,7 +637,7 @@ function getTot(data){return data.parciales.reduce(function(t,p){return t+(parse
 function getGastosExtraMes(a,m){return gastosExtra[gk(a,m)]||[];}
 function gkp(a,m,pid){return a+'-'+m+'-'+pid;}
 function getGastosExtraPiso(a,m,pid){return gastosExtra[gkp(a,m,pid)]||[];}
-function sumGastosExtraPiso(a,m,pid){return getGastosExtraPiso(a,m,pid).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
+function sumGastosExtraPiso(a,m,pid){return getGastosExtraPiso(a,m,pid).reduce(function(t,g){return t+(g.confirmado!==false?parseFloat(g.imp)||0:0);},0);}
 function sumGastosExtra(a,m){return PISOS.reduce(function(t,p){return t+sumGastosExtraPiso(a,m,p.id);},0)+getGastosExtraMes(a,m).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
 
 // CALCULOS
@@ -764,15 +764,31 @@ function quitarReserva(){
 function abrirModalGe(a,m,pid){
   modalCtx={a:a,m:m,pid:pid!==undefined?pid:null};
   var data=pid!==undefined?getGastosExtraPiso(a,m,pid):getGastosExtraMes(a,m);
-  geEdit=data.map(function(g){return{concepto:g.concepto,imp:g.imp};});
+  if(esAdmin()){
+    geEdit=data.map(function(g){return{concepto:g.concepto,imp:g.imp,confirmado:g.confirmado!==false,autor:g.autor||null};});
+  } else {
+    geEdit=data.filter(function(g){return g.autor===usuarioActual.id;}).map(function(g){return{concepto:g.concepto,imp:g.imp,confirmado:false,autor:usuarioActual.id};});
+  }
   var pisoNom=pid!==undefined?' · '+PISOS[pid].nombre:'';
-  document.getElementById('modal-ge-titulo').textContent='💸 Gastos extra'+pisoNom+' — '+MESES[m]+' '+a;
+  var titulo=esAdmin()?'💸 Gastos extra':'📋 Proponer gasto extra';
+  document.getElementById('modal-ge-titulo').textContent=titulo+pisoNom+' — '+MESES[m]+' '+a;
   renderGeList();document.getElementById('modal-ge-wrap').classList.add('open');
 }
 function renderGeList(){
   var list=document.getElementById('ge-list');if(!list) return;
   if(geEdit.length===0){list.innerHTML='<div class="parciales-empty">Sin gastos extra este mes.</div>';}
-  else{list.innerHTML=geEdit.map(function(g,i){return '<div class="ge-row"><input class="ge-concepto" type="text" value="'+(g.concepto||'')+'" placeholder="Reparación..." oninput="geEdit['+i+'].concepto=this.value"><input class="ge-imp" type="number" value="'+(g.imp||'')+'" min="0" placeholder="€" oninput="geEdit['+i+'].imp=parseFloat(this.value)||0;actualizarGeTot()"><button class="ge-del" onclick="geEdit.splice('+i+',1);renderGeList()">✕</button></div>';}).join('');}
+  else{list.innerHTML=geEdit.map(function(g,i){
+    var isPend=g.confirmado===false;
+    var badge=isPend?'<span style="font-size:.65rem;background:rgba(245,158,11,.2);color:var(--ambar-dark);border-radius:5px;padding:1px 6px;white-space:nowrap;">⏳ Pendiente</span>':'<span style="font-size:.65rem;background:rgba(34,197,94,.15);color:var(--verde-dark);border-radius:5px;padding:1px 6px;white-space:nowrap;">✅ Ok</span>';
+    var confirmBtn=esAdmin()&&isPend?'<button onclick="geEdit['+i+'].confirmado=true;renderGeList();" style="background:rgba(34,197,94,.2);border:1px solid var(--verde);color:var(--verde-dark);border-radius:5px;padding:2px 7px;cursor:pointer;font-size:.72rem;min-height:28px;">✓</button>':'';
+    var canEdit=esAdmin()||g.autor===usuarioActual.id;
+    return '<div class="ge-row" style="flex-wrap:wrap;gap:5px;">'
+      +'<input class="ge-concepto" type="text" value="'+(g.concepto||'')+'" placeholder="Reparación..." '+(canEdit?'oninput="geEdit['+i+'].concepto=this.value"':'readonly style="opacity:.6"')+'>'
+      +'<input class="ge-imp" type="number" value="'+(g.imp||'')+'" min="0" placeholder="€" '+(canEdit?'oninput="geEdit['+i+'].imp=parseFloat(this.value)||0;actualizarGeTot()"':'readonly style="opacity:.6;width:70px"')+' style="width:70px">'
+      +badge+confirmBtn
+      +(canEdit?'<button class="ge-del" onclick="geEdit.splice('+i+',1);renderGeList()">✕</button>':'')
+      +'</div>';
+  }).join('');}
   actualizarGeTot();
 }
 function addGeRow(){geEdit.push({concepto:'',imp:0});renderGeList();setTimeout(function(){var ins=document.querySelectorAll('.ge-concepto');if(ins.length)ins[ins.length-1].focus();},50);}
@@ -780,8 +796,17 @@ function actualizarGeTot(){var tot=geEdit.reduce(function(t,g){return t+(parseFl
 function guardarGastos(){
   var ctx=modalCtx;
   var k=ctx.pid!==null&&ctx.pid!==undefined?gkp(ctx.a,ctx.m,ctx.pid):gk(ctx.a,ctx.m);
-  var list=geEdit.filter(function(g){return (parseFloat(g.imp)||0)>0;});
-  if(list.length===0){delete gastosExtra[k];}else{gastosExtra[k]=list;}
+  var existing=gastosExtra[k]||[];
+  var newItems=geEdit.filter(function(g){return (parseFloat(g.imp)||0)>0;}).map(function(g){
+    return {concepto:g.concepto,imp:g.imp,confirmado:esAdmin()?g.confirmado!==false:false,autor:g.autor||usuarioActual.id};
+  });
+  if(esAdmin()){
+    gastosExtra[k]=newItems;
+  } else {
+    var othersItems=existing.filter(function(g){return g.autor!==usuarioActual.id;});
+    gastosExtra[k]=othersItems.concat(newItems);
+  }
+  if(!gastosExtra[k]||gastosExtra[k].length===0){delete gastosExtra[k];}
   sv('crm4_gastos',gastosExtra);cerrarModal('ge');renderAnual();
   if(ctx.pid!==null&&ctx.pid!==undefined){renderPisoView(ctx.pid);}renderDashboard();
 }
@@ -887,6 +912,11 @@ function renderDashboard(){
   });
   var pct=totContab+totRecog+totPend>0?Math.round(totContab/(totContab+totRecog+totPend)*100):0;
   var miNeto=0,netoSocios=0,pisosSocio=0;
+  var gastosPendientes=[];
+  PISOS.forEach(function(p){
+    var gp=getGastosExtraPiso(anioActual,mesActual,p.id);
+    gp.forEach(function(g){if(g.confirmado===false){gastosPendientes.push({piso:p.nombre,concepto:g.concepto,imp:g.imp,autor:g.autor});}});
+  });
   PISOS.forEach(function(p){
     var activo=!p.desde||(anioActual>p.desde.anio||(anioActual===p.desde.anio&&mesActual>=p.desde.mes));
     if(!activo) return;
@@ -905,6 +935,7 @@ function renderDashboard(){
     +'<div class="stat r"><div class="lbl">✗ Sin cobrar</div><div class="val" style="color:var(--rojo-dark)">€'+totPend.toLocaleString()+'</div><div class="sub">'+cPend+' semanas pendientes</div></div>'
     +'<div class="stat"><div class="lbl">% Contabilizado</div><div class="val" style="color:var(--azul-dark)">'+pct+'%</div><div class="sub">del total esperado</div></div>'
     +(pisosSocio>0?'<div class="stat v" style="border-left-color:#cc0000;"><div class="lbl">💰 Tu beneficio neto</div><div class="val" style="color:var(--verde-dark)">€'+miNeto.toLocaleString()+'</div><div class="sub">tras reparto 50/50 en '+pisosSocio+' piso'+(pisosSocio>1?'s':'')+'</div></div>':'')
+    +(gastosPendientes.length>0?'<div class="stat a" style="border-left-color:var(--ambar);cursor:pointer;"><div class="lbl">⏳ Gastos por confirmar</div><div class="val" style="color:var(--ambar-dark)">'+gastosPendientes.length+'</div><div class="sub">'+gastosPendientes.map(function(g){return g.piso.split(' ')[0]+': €'+g.imp;}).join(' · ')+'</div></div>':'')
     +'</div>'
     +'<div class="pisos-grid">'+PISOS.map(function(p){
       var c=calcPiso(p.id,anioActual,mesActual);
@@ -987,6 +1018,7 @@ function renderPisoView(pid){
     +'<button class="btn-ambar" onclick="marcarPisoRecogido('+pid+')">📦 Todas recogidas</button>'
     +(esAdmin()?'<button class="btn-green" onclick="marcarPisoContab('+pid+')">✅ Todas contabilizadas</button>':'')
     +(esAdmin()?'<button class="btn-ambar" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">💸 Gastos extra</button>':'')
+    +(esTrab()&&getSocioPiso(pid)&&getSocioPiso(pid).id===usuarioActual.id?'<button class="btn-outline" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">📋 Proponer gasto</button>':'')
     +(esAdmin()?'<button class="btn-outline" onclick="limpiarMes('+pid+')">🗑 Limpiar mes</button>':'')
     +'</div>';
   var hint=esTrab()
