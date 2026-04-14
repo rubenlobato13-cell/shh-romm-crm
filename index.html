@@ -635,7 +635,10 @@ function isSemActiva(a,m,pid,s){var k=sk(a,m,pid,s);return k in semsAct?semsAct[
 function getPagoData(a,m,pid,h,s){return pagos[pk(a,m,pid,h,s)]||{parciales:[],done:false,estado:'recogida'};}
 function getTot(data){return data.parciales.reduce(function(t,p){return t+(parseFloat(p.imp)||0);},0);}
 function getGastosExtraMes(a,m){return gastosExtra[gk(a,m)]||[];}
-function sumGastosExtra(a,m){return getGastosExtraMes(a,m).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
+function gkp(a,m,pid){return a+'-'+m+'-'+pid;}
+function getGastosExtraPiso(a,m,pid){return gastosExtra[gkp(a,m,pid)]||[];}
+function sumGastosExtraPiso(a,m,pid){return getGastosExtraPiso(a,m,pid).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
+function sumGastosExtra(a,m){return PISOS.reduce(function(t,p){return t+sumGastosExtraPiso(a,m,p.id);},0)+getGastosExtraMes(a,m).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
 
 // CALCULOS
 function calcPiso(pid,a,m){
@@ -653,7 +656,8 @@ function calcPiso(pid,a,m){
       else pendiente+=hab.p;
     }
   });
-  return{contab:contab,recog:recog,pendiente:pendiente,esperado:esperado};
+  var gastosEx=sumGastosExtraPiso(a,m,pid);
+  return{contab:contab,recog:recog,pendiente:pendiente,esperado:esperado,gastosEx:gastosEx};
 }
 function calcAnualMes(a,m){
   var contab=0,recog=0,gastosFijos=0,gastosEx=sumGastosExtra(a,m);
@@ -759,7 +763,8 @@ function quitarReserva(){
 // MODAL GASTOS EXTRA
 function abrirModalGe(a,m,pid){
   modalCtx={a:a,m:m,pid:pid!==undefined?pid:null};
-  geEdit=getGastosExtraMes(a,m).map(function(g){return{concepto:g.concepto,imp:g.imp};});
+  var data=pid!==undefined?getGastosExtraPiso(a,m,pid):getGastosExtraMes(a,m);
+  geEdit=data.map(function(g){return{concepto:g.concepto,imp:g.imp};});
   var pisoNom=pid!==undefined?' · '+PISOS[pid].nombre:'';
   document.getElementById('modal-ge-titulo').textContent='💸 Gastos extra'+pisoNom+' — '+MESES[m]+' '+a;
   renderGeList();document.getElementById('modal-ge-wrap').classList.add('open');
@@ -773,7 +778,8 @@ function renderGeList(){
 function addGeRow(){geEdit.push({concepto:'',imp:0});renderGeList();setTimeout(function(){var ins=document.querySelectorAll('.ge-concepto');if(ins.length)ins[ins.length-1].focus();},50);}
 function actualizarGeTot(){var tot=geEdit.reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);var el=document.getElementById('ge-total');if(el)el.textContent='Total: €'+tot.toLocaleString();}
 function guardarGastos(){
-  var ctx=modalCtx,k=gk(ctx.a,ctx.m);
+  var ctx=modalCtx;
+  var k=ctx.pid!==null&&ctx.pid!==undefined?gkp(ctx.a,ctx.m,ctx.pid):gk(ctx.a,ctx.m);
   var list=geEdit.filter(function(g){return (parseFloat(g.imp)||0)>0;});
   if(list.length===0){delete gastosExtra[k];}else{gastosExtra[k]=list;}
   sv('crm4_gastos',gastosExtra);cerrarModal('ge');renderAnual();
