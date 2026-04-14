@@ -885,7 +885,7 @@ function renderDashboard(){
     var activo=!p.desde||(anioActual>p.desde.anio||(anioActual===p.desde.anio&&mesActual>=p.desde.mes));
     if(!activo) return;
     var c2=calcPiso(p.id,anioActual,mesActual);
-    var neto=c2.contab-p.gastos;
+    var neto=c2.contab-p.gastos-c2.gastosEx;
     var socio=getSocioPiso(p.id);
     if(socio){miNeto+=neto*0.5;netoSocios+=neto*0.5;pisosSocio++;}
     else{miNeto+=neto;}
@@ -1006,7 +1006,7 @@ function renderPisoView(pid){
         if(!socio) return '';
         var esSocioDePiso=esTrab()&&usuarioActual&&socio.id===usuarioActual.id;
         if(!esAdmin()&&!esSocioDePiso) return '';
-        var t=c.contab-piso.gastos;
+        var t=c.contab-piso.gastos-c.gastosEx;
         var mi=Math.round(t*0.5*100)/100;
         var sc=Math.round(t*0.5*100)/100;
         return '<div style="margin-top:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(204,0,0,.1),rgba(204,0,0,.05));border:1px solid rgba(204,0,0,.3);border-radius:11px;">'
