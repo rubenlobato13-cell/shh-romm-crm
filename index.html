@@ -122,7 +122,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
 .tabla tbody tr:last-child td{border-bottom:none;}
 .tabla tbody tr:hover td{background:#1a1a1a;}
 .tabla tfoot td{padding:8px 11px;font-weight:700;font-size:.8rem;background:#000;border-top:2px solid #cc0000;text-align:center;color:#cc0000;}
-.nombre-wrap{display:flex;align-items:center;gap:5px;}
+.nombre-wrap,.precio-wrap{display:flex;align-items:center;gap:5px;}
 .btn-edit-n{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:.85rem;padding:2px 4px;border-radius:4px;min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;}
 .btn-edit-n:hover{color:var(--azul);background:var(--azul-bg);}
 .celda-pago{display:flex;flex-direction:column;align-items:stretch;gap:4px;}
@@ -420,6 +420,32 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
   </div>
 </div>
 
+<!-- MODAL PRECIO/DÍA -->
+<div class="modal-wrap" id="modal-precio-wrap">
+  <div class="modal-sm">
+    <h3 id="modal-precio-titulo">✏ Editar precio/día</h3>
+    <div class="mf"><label>Precio semana (€)</label><input type="number" id="mp-precio" min="0" placeholder="Ej: 200"></div>
+    <div class="mf">
+      <label>Día de renovación</label>
+      <select id="mp-dia" style="width:100%;padding:10px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:8px;font-size:.9rem;">
+        <option value="LUNES">LUNES</option>
+        <option value="MARTES">MARTES</option>
+        <option value="MIÉRCOLES">MIÉRCOLES</option>
+        <option value="JUEVES">JUEVES</option>
+        <option value="VIERNES">VIERNES</option>
+        <option value="SÁBADO">SÁBADO</option>
+        <option value="DOMINGO">DOMINGO</option>
+        <option value="MX">MX (flexible)</option>
+      </select>
+    </div>
+    <div class="sm-btns">
+      <button class="btn-ba" onclick="guardarPrecio()">Guardar</button>
+      <button class="btn-bv" onclick="resetPrecio()">↺ Restablecer</button>
+      <button class="btn-bc" onclick="cerrarModal('precio')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL GASTOS EXTRA -->
 <div class="modal-wrap" id="modal-ge-wrap">
   <div class="modal-ge">
@@ -496,6 +522,7 @@ var nombres=sg('crm4_nombres',{});
 var reservas=sg('crm4_reservas',{});
 var semsAct=sg('crm4_sems',{});
 var gastosExtra=sg('crm4_gastos',{});
+var precios=sg('crm4_precios',{});
 
 // USUARIOS
 var _defUsers=[{id:'admin',nombre:'Rubén',pin:'1111',rol:'admin',pisos:TODOS_PISOS}];
@@ -511,9 +538,6 @@ var _pinUid=null;
 var _uEditId=null;
 
 function svU(){sv('crm4_users',usuarios);}
-
-(function(){try{var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});_fbDb=firebase.database(app);_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});}catch(e){console.log('Firebase error:',e);}})();
-
 function getU(id){for(var i=0;i<usuarios.length;i++){if(usuarios[i].id===id)return usuarios[i];}return null;}
 function getSocioPiso(pid){for(var i=0;i<usuarios.length;i++){var u=usuarios[i];if(u.rol!=='admin'){for(var j=0;j<u.pisos.length;j++){if(u.pisos[j]===pid)return u;}}}return null;}
 function esAdmin(){return usuarioActual&&usuarioActual.rol==='admin';}
@@ -639,21 +663,24 @@ function gkp(a,m,pid){return a+'-'+m+'-'+pid;}
 function getGastosExtraPiso(a,m,pid){return gastosExtra[gkp(a,m,pid)]||[];}
 function sumGastosExtraPiso(a,m,pid){return getGastosExtraPiso(a,m,pid).reduce(function(t,g){return t+(g.confirmado!==false?parseFloat(g.imp)||0:0);},0);}
 function sumGastosExtra(a,m){return PISOS.reduce(function(t,p){return t+sumGastosExtraPiso(a,m,p.id);},0)+getGastosExtraMes(a,m).reduce(function(t,g){return t+(parseFloat(g.imp)||0);},0);}
+function getHabPrecio(pid,hIdx){var k=hk(pid,hIdx);return (k in precios&&precios[k].p!==undefined)?precios[k].p:PISOS[pid].habs[hIdx].p;}
+function getHabDia(pid,hIdx){var k=hk(pid,hIdx);return (k in precios&&precios[k].d!==undefined)?precios[k].d:PISOS[pid].habs[hIdx].d;}
 
 // CALCULOS
 function calcPiso(pid,a,m){
   var piso=PISOS[pid],contab=0,recog=0,pendiente=0,esperado=0;
   piso.habs.forEach(function(hab,hIdx){
     if(isVacia(pid,hIdx)) return;
+    var precio=getHabPrecio(pid,hIdx);
     for(var s=0;s<5;s++){
       if(!isSemActiva(a,m,pid,s)) continue;
-      esperado+=hab.p;
+      esperado+=precio;
       var data=getPagoData(a,m,pid,hIdx,s);
       var tot=getTot(data);
       var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-      if(est==='contabilizada') contab+=tot>0?tot:hab.p;
-      else if(est==='recogida'&&(tot>0||data.done)) recog+=tot>0?tot:hab.p;
-      else pendiente+=hab.p;
+      if(est==='contabilizada') contab+=tot>0?tot:precio;
+      else if(est==='recogida'&&(tot>0||data.done)) recog+=tot>0?tot:precio;
+      else pendiente+=precio;
     }
   });
   var gastosEx=sumGastosExtraPiso(a,m,pid);
@@ -671,7 +698,8 @@ function calcAnualMes(a,m){
 
 // MODAL PAGOS
 function abrirModalPago(pid,hIdx,sIdx){
-  var piso=PISOS[pid],hab=piso.habs[hIdx],nombre=getNombre(pid,hIdx);
+  var piso=PISOS[pid],nombre=getNombre(pid,hIdx);
+  var precio=getHabPrecio(pid,hIdx);
   var data=getPagoData(anioActual,mesActual,pid,hIdx,sIdx);
   modalCtx={pid:pid,hIdx:hIdx,sIdx:sIdx};
   parcialesToEdit=data.parciales.map(function(p){return{imp:p.imp,nota:p.nota};});
@@ -681,7 +709,7 @@ function abrirModalPago(pid,hIdx,sIdx){
   var btnC=document.getElementById('btn-contabilizada');
   if(btnC) btnC.style.display=esTrab()?'none':'';
   actualizarEstadoBtns();
-  renderParciales(hab.p);
+  renderParciales(precio);
   document.getElementById('modal-pago-wrap').classList.add('open');
 }
 function selEstado(est){if(esTrab()&&est==='contabilizada') return;estadoEdit=est;actualizarEstadoBtns();}
@@ -703,7 +731,7 @@ function renderParciales(precio){
   actualizarTotalModal(precio);
 }
 function addParcialRow(){
-  var pid=modalCtx.pid,hIdx=modalCtx.hIdx,precio=PISOS[pid].habs[hIdx].p;
+  var pid=modalCtx.pid,hIdx=modalCtx.hIdx,precio=getHabPrecio(pid,hIdx);
   var tot=parcialesToEdit.reduce(function(t,p){return t+(parseFloat(p.imp)||0);},0);
   parcialesToEdit.push({imp:Math.max(0,precio-tot)||precio,nota:''});
   renderParciales(precio);
@@ -743,6 +771,36 @@ function guardarNombre(){
 function vaciarHab(){
   if(!confirm('¿Marcar habitación como vacía?')) return;
   var ctx=modalCtx;nombres[hk(ctx.pid,ctx.hIdx)]='';sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
+}
+
+// MODAL PRECIO / DÍA
+function abrirModalPrecio(pid,hIdx){
+  if(!esAdmin()) return;
+  modalCtx={pid:pid,hIdx:hIdx};
+  document.getElementById('modal-precio-titulo').textContent='✏ '+PISOS[pid].nombre+' · Hab.'+(hIdx+1)+' — Precio/Día';
+  document.getElementById('mp-precio').value=getHabPrecio(pid,hIdx);
+  var sel=document.getElementById('mp-dia');
+  sel.value=getHabDia(pid,hIdx);
+  document.getElementById('modal-precio-wrap').classList.add('open');
+  setTimeout(function(){document.getElementById('mp-precio').select();},50);
+}
+function guardarPrecio(){
+  var ctx=modalCtx;
+  var p=parseFloat(document.getElementById('mp-precio').value);
+  var d=document.getElementById('mp-dia').value.trim().toUpperCase();
+  if(!p||p<=0){alert('El precio debe ser mayor que 0');return;}
+  var k=hk(ctx.pid,ctx.hIdx);
+  precios[k]={p:p,d:d};
+  sv('crm4_precios',precios);
+  cerrarModal('precio');renderAll();
+}
+function resetPrecio(){
+  if(!confirm('¿Restablecer precio y día originales de esta habitación?')) return;
+  var ctx=modalCtx;
+  var k=hk(ctx.pid,ctx.hIdx);
+  delete precios[k];
+  sv('crm4_precios',precios);
+  cerrarModal('precio');renderAll();
 }
 
 // MODAL RESERVA
@@ -870,7 +928,7 @@ function eliminarUsuario(uid){
 
 // CERRAR MODALES
 function cerrarModal(which){
-  var ids=['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap'];
+  var ids=['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap'];
   if(which){var el=document.getElementById('modal-'+which+'-wrap');if(el)el.classList.remove('open');}
   else{ids.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('open');});}
   modalCtx=null;
@@ -969,8 +1027,8 @@ function renderDashboard(){
 function renderPisoView(pid){
   var piso=PISOS[pid];
   var c=calcPiso(pid,anioActual,mesActual);
-  var neto4=piso.habs.reduce(function(a,h){return a+h.p;},0)*4-piso.gastos;
-  var neto5=piso.habs.reduce(function(a,h){return a+h.p;},0)*5-piso.gastos;
+  var neto4=piso.habs.reduce(function(a,h,hi){return a+getHabPrecio(pid,hi);},0)*4-piso.gastos;
+  var neto5=piso.habs.reduce(function(a,h,hi){return a+getHabPrecio(pid,hi);},0)*5-piso.gastos;
   var el=document.getElementById('view-piso-'+pid);if(!el) return;
   var semHdrs='';
   for(var s=0;s<5;s++){
@@ -990,11 +1048,12 @@ function renderPisoView(pid){
       var data=getPagoData(anioActual,mesActual,pid,hIdx,s2);
       var tot=getTot(data);
       var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-      var isParcial=!data.done&&tot>0&&tot<hab.p;
-      if(est!=='pendiente') totSems[s2]+=tot>0?tot:hab.p;
-      var pct=hab.p>0?Math.min(100,Math.round(tot/hab.p*100)):0;
+      var habP=getHabPrecio(pid,hIdx);
+      var isParcial=!data.done&&tot>0&&tot<habP;
+      if(est!=='pendiente') totSems[s2]+=tot>0?tot:habP;
+      var pct=habP>0?Math.min(100,Math.round(tot/habP*100)):0;
       var notas=data.parciales.filter(function(p){return p.nota;}).map(function(p){return '€'+p.imp+' '+p.nota;}).join(' + ');
-      var label=est==='pendiente'?'✗ €'+hab.p:est==='contabilizada'?'✅ '+(tot>0?'€'+tot:'€'+hab.p):isParcial?'📦 €'+tot+'/€'+hab.p:'📦 €'+(tot>0?tot:hab.p);
+      var label=est==='pendiente'?'✗ €'+habP:est==='contabilizada'?'✅ '+(tot>0?'€'+tot:'€'+habP):isParcial?'📦 €'+tot+'/€'+habP:'📦 €'+(tot>0?tot:habP);
       celdas+='<td class="'+(act2?'':'sem-disabled')+'"><div class="celda-pago"><div class="pago-row-top">'
         +'<button class="pago-btn '+(est==='pendiente'?'pendiente':est==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+s2+')"><span>'+label+'</span><span style="font-size:.7rem;opacity:.6">✎</span></button>'
         +(est!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+s2+')" title="Borrar">✕</button>':'')
@@ -1003,12 +1062,15 @@ function renderPisoView(pid){
         +(notas?'<div class="nota-display">📝 '+notas+'</div>':'')
         +'</div></td>';
     }
+    var habP2=getHabPrecio(pid,hIdx);var habD2=getHabDia(pid,hIdx);
     var resHtml=reservaImp>0
       ?'<span class="reserva-tag" onclick="abrirModalReserva('+pid+','+hIdx+')">RESERVA €'+reservaImp+'</span>'
       :'<button class="btn-add-reserva" onclick="abrirModalReserva('+pid+','+hIdx+')">+ Reserva</button>';
+    var precioCell=vacia?'—':'<div class="precio-wrap"><span style="font-weight:700;color:var(--azul-dark)">€'+habP2+'</span>'+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPrecio('+pid+','+hIdx+')" title="Editar precio/día">✏</button>':'')+'</div>';
+    var diaCell=vacia?'—':'<div class="precio-wrap"><span>'+habD2+'</span></div>';
     filas+='<tr style="'+(vacia?'opacity:.4':'')+'"><td><div class="nombre-wrap"><span style="font-weight:700">'+(vacia?'<em style="color:#94a3b8">VACÍA</em>':nombre)+'</span><button class="btn-edit-n" onclick="abrirModalNombre('+pid+','+hIdx+')" title="Editar">✏</button></div></td>'
-      +'<td style="color:var(--azul-dark);font-weight:700">'+(vacia?'—':'€'+hab.p)+'</td>'
-      +'<td style="color:var(--suave);font-size:.79rem">'+(vacia?'—':hab.d)+'</td>'
+      +'<td style="color:var(--azul-dark);">'+precioCell+'</td>'
+      +'<td style="color:var(--suave);font-size:.79rem;">'+diaCell+'</td>'
       +'<td>'+resHtml+'</td>'+celdas+'</tr>';
   });
   var totCeldas='';
@@ -1068,7 +1130,7 @@ function marcarPisoRecogido(pid){
       if(!isSemActiva(anioActual,mesActual,pid,s)) continue;
       var data=getPagoData(anioActual,mesActual,pid,hIdx,s);
       var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-      if(est==='pendiente'){pagos[pk(anioActual,mesActual,pid,hIdx,s)]={parciales:[{imp:hab.p,nota:''}],done:false,estado:'recogida'};}
+      if(est==='pendiente'){pagos[pk(anioActual,mesActual,pid,hIdx,s)]={parciales:[{imp:getHabPrecio(pid,hIdx),nota:''}],done:false,estado:'recogida'};}
     }
   });
   sv('crm4_pagos',pagos);renderAll();
@@ -1081,7 +1143,7 @@ function marcarPisoContab(pid){
     for(var s=0;s<5;s++){
       if(!isSemActiva(anioActual,mesActual,pid,s)) continue;
       var data=getPagoData(anioActual,mesActual,pid,hIdx,s);
-      if(data.parciales.length===0&&!data.done){data={parciales:[{imp:hab.p,nota:''}],done:false};}
+      if(data.parciales.length===0&&!data.done){data={parciales:[{imp:getHabPrecio(pid,hIdx),nota:''}],done:false};}
       data.estado='contabilizada';pagos[pk(anioActual,mesActual,pid,hIdx,s)]=data;
     }
   });
@@ -1111,10 +1173,10 @@ function renderAlertas(){
         if(est==='contabilizada') return;
         if(est==='recogida'){
           nRecog++;
-          html+='<div class="alerta-item recogida"><div class="al-info"><div class="al-nom">📦 '+nombre+' · Sem.'+(s+1)+'</div><div class="al-sub">🏠 '+p.nombre+' · Recogida, pendiente contabilizar</div></div><div class="al-right"><div class="al-imp recogida">€'+(tot>0?tot:hab.p)+'</div>'+(esAdmin()?'<button class="btn-green" style="font-size:.73rem;padding:6px 9px;" onclick="abrirModalPago('+p.id+','+hIdx+','+s+')">✅ Contabilizar</button>':'')+'</div></div>';
+          html+='<div class="alerta-item recogida"><div class="al-info"><div class="al-nom">📦 '+nombre+' · Sem.'+(s+1)+'</div><div class="al-sub">🏠 '+p.nombre+' · Recogida, pendiente contabilizar</div></div><div class="al-right"><div class="al-imp recogida">€'+(tot>0?tot:getHabPrecio(p.id,hIdx))+'</div>'+(esAdmin()?'<button class="btn-green" style="font-size:.73rem;padding:6px 9px;" onclick="abrirModalPago('+p.id+','+hIdx+','+s+')">✅ Contabilizar</button>':'')+'</div></div>';
         } else {
           nPend++;
-          html+='<div class="alerta-item"><div class="al-info"><div class="al-nom">✗ '+nombre+' · Sem.'+(s+1)+'</div><div class="al-sub">🏠 '+p.nombre+' · '+hab.d+' · Sin cobrar</div></div><div class="al-right"><div class="al-imp">€'+hab.p+'</div><button class="btn-ambar" style="font-size:.73rem;padding:6px 9px;" onclick="abrirModalPago('+p.id+','+hIdx+','+s+')">📦 Recogida</button></div></div>';
+          html+='<div class="alerta-item"><div class="al-info"><div class="al-nom">✗ '+nombre+' · Sem.'+(s+1)+'</div><div class="al-sub">🏠 '+p.nombre+' · '+getHabDia(p.id,hIdx)+' · Sin cobrar</div></div><div class="al-right"><div class="al-imp">€'+getHabPrecio(p.id,hIdx)+'</div><button class="btn-ambar" style="font-size:.73rem;padding:6px 9px;" onclick="abrirModalPago('+p.id+','+hIdx+','+s+')">📦 Recogida</button></div></div>';
         }
       }
     });
@@ -1275,7 +1337,7 @@ function init(){
 
 window.onload=function(){
   try{
-    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap'].forEach(function(id){
+    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap'].forEach(function(id){
       var el=document.getElementById(id);
       if(el) el.addEventListener('click',function(e){if(e.target===e.currentTarget)cerrarModal();});
     });
@@ -1286,6 +1348,12 @@ window.onload=function(){
     if(m) m.innerHTML='<div style="padding:24px;background:#1a0000;border:1px solid #cc0000;border-radius:12px;margin:16px;font-size:15px;color:#f0f0f0"><strong>Error al iniciar</strong><br><small>'+(e.message||e)+'</small><br><br><button onclick="location.reload()" style="padding:12px 20px;background:#cc0000;color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer">Reintentar</button></div>';
   }
 };
+
+(function(){try{
+var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});
+_fbDb=firebase.database(app);
+_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
+}catch(e){console.log('Firebase error:',e);}})();
 </script>
 </body>
 </html>
