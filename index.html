@@ -412,6 +412,17 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
   <div class="modal-sm">
     <h3>💰 Depósito reserva</h3>
     <div class="mf"><label>Importe (€)</label><input type="number" id="mr-input" min="0" placeholder="Ej: 50"></div>
+    <div class="mf">
+      <label>Método de pago</label>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <label style="flex:1;cursor:pointer;background:rgba(204,0,0,.08);border:1.5px solid rgba(204,0,0,.25);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:7px;font-size:.88rem;" id="mr-ef-lbl">
+          <input type="radio" name="mr-metodo" id="mr-ef" value="efectivo" style="accent-color:#cc0000;" onchange="document.getElementById('mr-ef-lbl').style.borderColor='#cc0000';document.getElementById('mr-bz-lbl').style.borderColor='rgba(204,0,0,.25)';" checked> 💵 Efectivo
+        </label>
+        <label style="flex:1;cursor:pointer;background:rgba(204,0,0,.08);border:1.5px solid rgba(204,0,0,.25);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:7px;font-size:.88rem;" id="mr-bz-lbl">
+          <input type="radio" name="mr-metodo" id="mr-bz" value="bizum" style="accent-color:#cc0000;" onchange="document.getElementById('mr-bz-lbl').style.borderColor='#cc0000';document.getElementById('mr-ef-lbl').style.borderColor='rgba(204,0,0,.25)';"> 💳 Bizum
+        </label>
+      </div>
+    </div>
     <div class="sm-btns">
       <button class="btn-ba" style="background:var(--ambar);" onclick="guardarReserva()">Guardar</button>
       <button class="btn-bv" onclick="quitarReserva()">Quitar</button>
@@ -654,7 +665,9 @@ function gk(a,m){return a+'-'+m;}
 // GETTERS
 function getNombre(pid,hIdx){var k=hk(pid,hIdx);return k in nombres?nombres[k]:PISOS[pid].habs[hIdx].n;}
 function isVacia(pid,hIdx){var k=hk(pid,hIdx);return k in nombres&&nombres[k]==='';}
-function getReserva(pid,hIdx){var k=hk(pid,hIdx);return k in reservas?reservas[k]:PISOS[pid].habs[hIdx].r;}
+function getReservaData(pid,hIdx){var k=hk(pid,hIdx);var v=k in reservas?reservas[k]:PISOS[pid].habs[hIdx].r;if(typeof v==='number')return{imp:v,metodo:'efectivo'};return v&&typeof v==='object'?v:{imp:0,metodo:'efectivo'};}
+function getReserva(pid,hIdx){return getReservaData(pid,hIdx).imp;}
+function isBizum(nota){return nota&&nota.toLowerCase().indexOf('bizum')>=0;}
 function isSemActiva(a,m,pid,s){var k=sk(a,m,pid,s);return k in semsAct?semsAct[k]:s<4;}
 function getPagoData(a,m,pid,h,s){return pagos[pk(a,m,pid,h,s)]||{parciales:[],done:false,estado:'recogida'};}
 function getTot(data){return data.parciales.reduce(function(t,p){return t+(parseFloat(p.imp)||0);},0);}
@@ -678,9 +691,13 @@ function calcPiso(pid,a,m){
       var data=getPagoData(a,m,pid,hIdx,s);
       var tot=getTot(data);
       var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-      if(est==='contabilizada') contab+=tot>0?tot:precio;
-      else if(est==='recogida'&&(tot>0||data.done)) recog+=tot>0?tot:precio;
-      else pendiente+=precio;
+      if(est==='contabilizada') {contab+=tot>0?tot:precio;}
+      else if(est==='recogida'&&(tot>0||data.done)){
+        var bizAmt=data.parciales.reduce(function(t,p){return t+(isBizum(p.nota)?parseFloat(p.imp)||0:0);},0);
+        var efAmt=data.parciales.reduce(function(t,p){return t+(!isBizum(p.nota)?parseFloat(p.imp)||0:0);},0);
+        contab+=bizAmt;
+        recog+=efAmt>0?efAmt:(bizAmt===0?tot:0);
+      } else pendiente+=precio;
     }
   });
   var gastosEx=sumGastosExtraPiso(a,m,pid);
@@ -806,16 +823,27 @@ function resetPrecio(){
 // MODAL RESERVA
 function abrirModalReserva(pid,hIdx){
   modalCtx={pid:pid,hIdx:hIdx};
-  document.getElementById('mr-input').value=getReserva(pid,hIdx)||'';
+  var data=getReservaData(pid,hIdx);
+  document.getElementById('mr-input').value=data.imp||'';
+  var metodo=data.metodo||'efectivo';
+  document.getElementById('mr-ef').checked=metodo==='efectivo';
+  document.getElementById('mr-bz').checked=metodo==='bizum';
+  document.getElementById('mr-ef-lbl').style.borderColor=metodo==='efectivo'?'#cc0000':'rgba(204,0,0,.25)';
+  document.getElementById('mr-bz-lbl').style.borderColor=metodo==='bizum'?'#cc0000':'rgba(204,0,0,.25)';
   document.getElementById('modal-reserva-wrap').classList.add('open');
   setTimeout(function(){document.getElementById('mr-input').focus();},50);
 }
 function guardarReserva(){
-  var ctx=modalCtx,v=parseFloat(document.getElementById('mr-input').value)||0;
-  reservas[hk(ctx.pid,ctx.hIdx)]=v;sv('crm4_reservas',reservas);cerrarModal('reserva');renderAll();
+  var ctx=modalCtx;
+  var v=parseFloat(document.getElementById('mr-input').value)||0;
+  var metodo=document.getElementById('mr-bz').checked?'bizum':'efectivo';
+  reservas[hk(ctx.pid,ctx.hIdx)]={imp:v,metodo:metodo};
+  sv('crm4_reservas',reservas);cerrarModal('reserva');renderAll();
 }
 function quitarReserva(){
-  var ctx=modalCtx;reservas[hk(ctx.pid,ctx.hIdx)]=0;sv('crm4_reservas',reservas);cerrarModal('reserva');renderAll();
+  var ctx=modalCtx;
+  delete reservas[hk(ctx.pid,ctx.hIdx)];
+  sv('crm4_reservas',reservas);cerrarModal('reserva');renderAll();
 }
 
 // MODAL GASTOS EXTRA
@@ -1052,8 +1080,10 @@ function renderPisoView(pid){
       var isParcial=!data.done&&tot>0&&tot<habP;
       if(est!=='pendiente') totSems[s2]+=tot>0?tot:habP;
       var pct=habP>0?Math.min(100,Math.round(tot/habP*100)):0;
-      var notas=data.parciales.filter(function(p){return p.nota;}).map(function(p){return '€'+p.imp+' '+p.nota;}).join(' + ');
-      var label=est==='pendiente'?'✗ €'+habP:est==='contabilizada'?'✅ '+(tot>0?'€'+tot:'€'+habP):isParcial?'📦 €'+tot+'/€'+habP:'📦 €'+(tot>0?tot:habP);
+      var notas=data.parciales.filter(function(p){return p.nota||p.imp;}).map(function(p){return (isBizum(p.nota)?'💳':'📦')+'€'+p.imp+(p.nota?' '+p.nota:'');}).join(' + ');
+      var bizTotal=data.parciales.reduce(function(t,p){return t+(isBizum(p.nota)?parseFloat(p.imp)||0:0);},0);
+      var labelPfx=est==='pendiente'?'✗ €'+habP:est==='contabilizada'?'✅ '+(tot>0?'€'+tot:'€'+habP):est==='recogida'&&bizTotal>0?(bizTotal===tot?'💳 €'+tot:'💳€'+bizTotal+'+📦€'+(tot-bizTotal)):'📦 €'+(tot>0?tot:habP);
+      var label=labelPfx;
       celdas+='<td class="'+(act2?'':'sem-disabled')+'"><div class="celda-pago"><div class="pago-row-top">'
         +'<button class="pago-btn '+(est==='pendiente'?'pendiente':est==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+s2+')"><span>'+label+'</span><span style="font-size:.7rem;opacity:.6">✎</span></button>'
         +(est!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+s2+')" title="Borrar">✕</button>':'')
@@ -1063,8 +1093,9 @@ function renderPisoView(pid){
         +'</div></td>';
     }
     var habP2=getHabPrecio(pid,hIdx);var habD2=getHabDia(pid,hIdx);
-    var resHtml=reservaImp>0
-      ?'<span class="reserva-tag" onclick="abrirModalReserva('+pid+','+hIdx+')">RESERVA €'+reservaImp+'</span>'
+    var resData=getReservaData(pid,hIdx);
+    var resHtml=resData.imp>0
+      ?'<span class="reserva-tag" onclick="abrirModalReserva('+pid+','+hIdx+')">'+(resData.metodo==='bizum'?'💳':'💵')+' RESERVA €'+resData.imp+'</span>'
       :'<button class="btn-add-reserva" onclick="abrirModalReserva('+pid+','+hIdx+')">+ Reserva</button>';
     var precioCell=vacia?'—':'<div class="precio-wrap"><span style="font-weight:700;color:var(--azul-dark)">€'+habP2+'</span>'+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPrecio('+pid+','+hIdx+')" title="Editar precio/día">✏</button>':'')+'</div>';
     var diaCell=vacia?'—':'<div class="precio-wrap"><span>'+habD2+'</span></div>';
