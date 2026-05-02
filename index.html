@@ -187,6 +187,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
 .anual-table tr.neto-row td:last-child{background:rgba(34,197,94,.08);}
 .anual-table .mes-head{font-size:.72rem;}
 .anual-table .mes-head.actual{color:#ff6b6b;}
+.anual-table td.pos{color:var(--verde-dark);}
+.anual-table td.neg{color:var(--rojo-dark);}
+.anual-table tr.anio-sel td{background:rgba(204,0,0,.12)!important;}
+.anual-table tr:hover td{background:#1a1a1a;}
 .gasto-cell{display:flex;flex-direction:column;align-items:center;gap:2px;}
 .gasto-sum{font-weight:700;color:var(--rojo-dark);}
 .btn-add-gasto{background:none;border:1px dashed #94a3b8;color:#94a3b8;border-radius:5px;padding:1px 5px;cursor:pointer;font-size:.65rem;line-height:1.4;}
@@ -712,6 +716,19 @@ function calcAnualMes(a,m){
   });
   return{contab:contab,recog:recog,gastosFijos:gastosFijos,gastosEx:gastosEx,neto:contab-gastosFijos-gastosEx};
 }
+function calcAcumuladoAnio(anio){
+  var contab=0,recog=0,gastosFijos=0,gastosEx=0;
+  for(var m=0;m<12;m++){var d=calcAnualMes(anio,m);contab+=d.contab;recog+=d.recog;gastosFijos+=d.gastosFijos;gastosEx+=d.gastosEx;}
+  return{contab:Math.round(contab*100)/100,recog:Math.round(recog*100)/100,gastosFijos:Math.round(gastosFijos*100)/100,gastosEx:Math.round(gastosEx*100)/100,neto:Math.round((contab-gastosFijos-gastosEx)*100)/100};
+}
+function getAniosConDatos(){
+  var set={};
+  Object.keys(pagos).forEach(function(k){var a=parseInt(k.split('-')[0]);if(!isNaN(a))set[a]=1;});
+  Object.keys(gastosExtra).forEach(function(k){var a=parseInt(k.split('-')[0]);if(!isNaN(a))set[a]=1;});
+  var curAnio=new Date().getFullYear();
+  for(var ay=curAnio-1;ay<=curAnio+2;ay++) set[ay]=1;
+  return Object.keys(set).map(function(a){return parseInt(a);}).sort();
+}
 
 // MODAL PAGOS
 function abrirModalPago(pid,hIdx,sIdx){
@@ -1014,14 +1031,24 @@ function renderDashboard(){
   });
   miNeto=Math.round(miNeto*100)/100;
   netoSocios=Math.round(netoSocios*100)/100;
+  // Acumulado total (todos los años/meses)
+  var acumContab=0,acumNeto=0;
+  getAniosConDatos().forEach(function(ay){var d=calcAcumuladoAnio(ay);acumContab+=d.contab;acumNeto+=d.neto;});
+  acumContab=Math.round(acumContab*100)/100;acumNeto=Math.round(acumNeto*100)/100;
   var el=document.getElementById('view-dashboard');if(!el) return;
-  el.innerHTML='<div class="stats-grid">'
+  el.innerHTML='<div style="font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-left:2px;">📅 '+MESES[mesActual]+' '+anioActual+'</div>'
+    +'<div class="stats-grid">'
     +'<div class="stat v"><div class="lbl">✅ Contabilizado</div><div class="val" style="color:var(--verde-dark)">€'+totContab.toLocaleString()+'</div><div class="sub">'+cContab+' semanas confirmadas</div></div>'
     +'<div class="stat a"><div class="lbl">📦 Recogido (pdte.)</div><div class="val" style="color:var(--ambar-dark)">€'+totRecog.toLocaleString()+'</div><div class="sub">'+cRecog+' sem. por contabilizar</div></div>'
     +'<div class="stat r"><div class="lbl">✗ Sin cobrar</div><div class="val" style="color:var(--rojo-dark)">€'+totPend.toLocaleString()+'</div><div class="sub">'+cPend+' semanas pendientes</div></div>'
     +'<div class="stat"><div class="lbl">% Contabilizado</div><div class="val" style="color:var(--azul-dark)">'+pct+'%</div><div class="sub">del total esperado</div></div>'
     +(pisosSocio>0?'<div class="stat v" style="border-left-color:#cc0000;"><div class="lbl">💰 Tu beneficio neto</div><div class="val" style="color:var(--verde-dark)">€'+miNeto.toLocaleString()+'</div><div class="sub">tras reparto 50/50 en '+pisosSocio+' piso'+(pisosSocio>1?'s':'')+'</div></div>':'')
     +(gastosPendientes.length>0?'<div class="stat a" style="border-left-color:var(--ambar);cursor:pointer;"><div class="lbl">⏳ Gastos por confirmar</div><div class="val" style="color:var(--ambar-dark)">'+gastosPendientes.length+'</div><div class="sub">'+gastosPendientes.map(function(g){return g.piso.split(' ')[0]+': €'+g.imp;}).join(' · ')+'</div></div>':'')
+    +'</div>'
+    +'<div style="font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px;padding-left:2px;">📊 Total acumulado (todos los meses)</div>'
+    +'<div class="stats-grid" style="margin-bottom:18px;">'
+    +'<div class="stat v"><div class="lbl">✅ Total contabilizado</div><div class="val" style="color:var(--verde-dark)">€'+acumContab.toLocaleString()+'</div><div class="sub">Sin pendientes de otros meses</div></div>'
+    +'<div class="stat" style="border-left-color:#cc0000;cursor:pointer;" onclick="mostrarVista(\'anual\')" title="Ver resumen anual"><div class="lbl">💰 Neto acumulado</div><div class="val" style="color:var(--azul-dark)">€'+acumNeto.toLocaleString()+'</div><div class="sub">↗ Ver desglose por años</div></div>'
     +'</div>'
     +'<div class="pisos-grid">'+PISOS.map(function(p){
       var c=calcPiso(p.id,anioActual,mesActual);
@@ -1242,7 +1269,45 @@ function renderAnual(){
     return '<td class="'+(eM?'mes-actual':'')+'" style="min-width:100px;">'+cell+'</td>';
   }).join('')+'<td style="font-weight:700;color:var(--rojo-dark)">€'+tot(rows.gastosEx).toLocaleString()+'</td></tr>';
   var rN='<tr class="neto-row"><td class="row-lbl" style="font-weight:800;">💰 NETO</td>'+rows.neto.map(function(v,m3){var eM=m3===mesHoy&&anioAnual===anioHoy;return '<td class="'+(eM?'mes-actual ':'')+(v>=0?'pos':'neg')+'" style="font-weight:800;">'+(v===0?'—':(v>=0?'+':'')+'€'+v.toLocaleString())+'</td>';}).join('')+'<td class="'+(tot(rows.neto)>=0?'pos':'neg')+'" style="font-weight:800;">'+(tot(rows.neto)>=0?'+':'')+'€'+tot(rows.neto).toLocaleString()+'</td></tr>';
-  el.innerHTML='<div class="anual-hdr"><h2>📈 Resumen anual contable</h2><div class="anio-nav"><button onclick="cambiarAnio(-1)">◀</button><div class="anio-lbl">'+anioAnual+'</div><button onclick="cambiarAnio(1)">▶</button></div></div>'
+  // TABLA MULTIANUAL
+  var aniosList=getAniosConDatos();
+  var totAcumC=0,totAcumGF=0,totAcumGE=0,totAcumN=0;
+  var multiRows=aniosList.map(function(ay){
+    var d=calcAcumuladoAnio(ay);
+    totAcumC+=d.contab;totAcumGF+=d.gastosFijos;totAcumGE+=d.gastosEx;totAcumN+=d.neto;
+    var esAnioAct=ay===anioAnual;
+    var esAnioHoy=ay===anioHoy;
+    return '<tr class="'+(esAnioAct?'anio-sel':'')+'" onclick="anioAnual='+ay+';renderAnual();" style="cursor:pointer;'+(esAnioAct?'background:rgba(204,0,0,.12);':'')+'">'
+      +'<td class="row-lbl" style="font-weight:'+(esAnioHoy?'800':'600')+'">'+ay+(esAnioHoy?' ★':'')+'</td>'
+      +'<td style="color:var(--verde-dark);font-weight:700">€'+d.contab.toLocaleString()+'</td>'
+      +'<td style="color:var(--ambar-dark)">€'+d.recog.toLocaleString()+'</td>'
+      +'<td style="color:var(--rojo-dark)">€'+d.gastosFijos.toLocaleString()+'</td>'
+      +'<td style="color:var(--rojo-dark)">€'+d.gastosEx.toLocaleString()+'</td>'
+      +'<td class="'+(d.neto>=0?'pos':'neg')+'" style="font-weight:800;">'+(d.neto>=0?'+':'')+'€'+d.neto.toLocaleString()+'</td>'
+      +'</tr>';
+  }).join('');
+  var multiTotal='<tr style="background:#000;border-top:2px solid #cc0000;">'
+    +'<td class="row-lbl" style="font-weight:800;color:#cc0000;">TOTAL</td>'
+    +'<td style="color:var(--verde-dark);font-weight:800;">€'+Math.round(totAcumC).toLocaleString()+'</td>'
+    +'<td style="color:var(--ambar-dark);font-weight:700;">—</td>'
+    +'<td style="color:var(--rojo-dark);font-weight:700;">€'+Math.round(totAcumGF).toLocaleString()+'</td>'
+    +'<td style="color:var(--rojo-dark);font-weight:700;">€'+Math.round(totAcumGE).toLocaleString()+'</td>'
+    +'<td class="'+(totAcumN>=0?'pos':'neg')+'" style="font-weight:800;">'+(totAcumN>=0?'+':'')+'€'+Math.round(totAcumN).toLocaleString()+'</td>'
+    +'</tr>';
+  var multiTable='<div style="margin-bottom:20px;">'
+    +'<div style="font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">📊 Resumen por años — pulsa un año para ver su desglose mensual</div>'
+    +'<div class="anual-wrap"><table class="anual-table" style="min-width:unset;"><thead><tr>'
+    +'<th class="mes-head row-lbl">Año</th>'
+    +'<th class="mes-head">✅ Contab.</th>'
+    +'<th class="mes-head">📦 Recogido</th>'
+    +'<th class="mes-head">🏠 G.Fijos</th>'
+    +'<th class="mes-head">💸 G.Extra</th>'
+    +'<th class="mes-head">💰 NETO</th>'
+    +'</tr></thead><tbody>'+multiRows+multiTotal+'</tbody></table></div>'
+    +'</div>';
+  el.innerHTML='<div class="anual-hdr"><h2>📈 Resumen contable</h2><div class="anio-nav"><button onclick="cambiarAnio(-1)">◀</button><div class="anio-lbl">'+anioAnual+'</div><button onclick="cambiarAnio(1)">▶</button></div></div>'
+    +multiTable
+    +'<div style="font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-left:2px;">📅 Desglose mensual — '+anioAnual+'</div>'
     +'<div class="anual-leyenda"><div class="ley-item"><div class="ley-dot" style="background:var(--verde)"></div> Contabilizado</div><div class="ley-item"><div class="ley-dot" style="background:var(--ambar)"></div> Recogido</div><div class="ley-item"><div class="ley-dot" style="background:var(--rojo)"></div> Gastos</div></div>'
     +'<div class="anual-wrap"><table class="anual-table"><thead><tr>'+thMeses+'</tr></thead><tbody>'+rC+rR+rGF+rGE+rN+'</tbody></table></div>'
     +'<div style="font-size:.75rem;color:var(--suave);padding:8px 12px;background:var(--gris-bg);border-radius:8px;">⚠️ El neto usa solo lo <strong>Contabilizado</strong>. Clic en "+ gasto" para añadir gastos extra.</div>';
