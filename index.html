@@ -589,13 +589,14 @@ var _uEditId=null;
 
 function svU(){sv('crm4_users',usuarios);}
 function getU(id){for(var i=0;i<usuarios.length;i++){if(usuarios[i].id===id)return usuarios[i];}return null;}
-function getSocioPiso(pid){for(var i=0;i<usuarios.length;i++){var u=usuarios[i];if(u.rol!=='admin'){for(var j=0;j<u.pisos.length;j++){if(u.pisos[j]===pid)return u;}}}return null;}
+function getSocioPiso(pid){for(var i=0;i<usuarios.length;i++){var u=usuarios[i];if(u.rol!=='admin'){var _up=Array.isArray(u.pisos)?u.pisos:[];for(var j=0;j<_up.length;j++){if(_up[j]===pid)return u;}}}return null;}
 function esAdmin(){return usuarioActual&&usuarioActual.rol==='admin';}
 function esTrab(){return usuarioActual&&usuarioActual.rol!=='admin';}
 function tienePiso(pid){
   if(!usuarioActual) return false;
   if(usuarioActual.rol==='admin') return true;
-  for(var i=0;i<usuarioActual.pisos.length;i++){if(usuarioActual.pisos[i]===pid)return true;}
+  var _p=Array.isArray(usuarioActual.pisos)?usuarioActual.pisos:[];
+  for(var i=0;i<_p.length;i++){if(_p[i]===pid)return true;}
   return false;
 }
 function checkSesion(){
@@ -676,7 +677,7 @@ function arrancarApp(){
   if(tD) tD.style.display=esAdmin()?'':'none';
   if(tU) tU.style.display=esAdmin()?'':'none';
   // Vista inicial
-  if(esTrab()&&usuarioActual.pisos.length>0){
+  if(esTrab()&&Array.isArray(usuarioActual.pisos)&&usuarioActual.pisos.length>0){
     mostrarVista('piso-'+usuarioActual.pisos[0]);
   } else if(esTrab()){
     mostrarVista('alertas');
@@ -991,7 +992,7 @@ function abrirModalUsuario(uid){
   var grid=document.getElementById('mu-pisos-grid');
   if(grid){
     grid.innerHTML=PISOS.map(function(p){
-      var checked=u&&u.pisos.indexOf(p.id)!==-1?'checked':'';
+      var checked=u&&Array.isArray(u.pisos)&&u.pisos.indexOf(p.id)!==-1?'checked':'';
       return '<label class="piso-chk-lbl"><input type="checkbox" id="mup-'+p.id+'" '+checked+'>'+p.nombre+'</label>';
     }).join('');
   }
@@ -1415,7 +1416,7 @@ function renderUsuarios(){
     var ini=u.nombre.charAt(0).toUpperCase();
     var pisosHtml=u.rol==='admin'
       ?'<span style="color:var(--suave);font-size:.72rem">Acceso completo a todos los pisos</span>'
-      :(u.pisos.length===0?'<span style="color:var(--rojo);font-size:.72rem">Sin pisos asignados</span>':u.pisos.map(function(pid){return '<span class="upchip">'+PISOS[pid].nombre.split(' ').slice(0,2).join(' ')+'</span>';}).join(''));
+      :((!Array.isArray(u.pisos)||u.pisos.length===0)?'<span style="color:var(--rojo);font-size:.72rem">Sin pisos asignados</span>':u.pisos.map(function(pid){return PISOS[pid]?'<span class="upchip">'+PISOS[pid].nombre.split(' ').slice(0,2).join(' ')+'</span>':''}).join(''));
     var admins=0;for(var j=0;j<usuarios.length;j++){if(usuarios[j].rol==='admin')admins++;}
     var canDel=!(u.rol==='admin'&&admins<=1);
     return '<div class="usr-item"><div class="usr-av" style="background:'+col+'">'+ini+'</div>'
