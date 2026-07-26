@@ -553,7 +553,13 @@ if(!_ha){usuarios=_defUsers.slice();sv('crm4_users',usuarios);}
 (function(){
   var _adm=null;
   for(var _i=0;_i<usuarios.length;_i++){if(usuarios[_i].rol==='admin'){_adm=usuarios[_i];break;}}
-  if(_adm){var _chg=false;if(_adm.pisos.indexOf(8)<0){_adm.pisos.push(8);_chg=true;}if(_adm.pisos.indexOf(9)<0){_adm.pisos.push(9);_chg=true;}if(_chg)sv('crm4_users',usuarios);}
+  if(_adm){
+    if(!Array.isArray(_adm.pisos))_adm.pisos=[];
+    var _chg=false;
+    if(_adm.pisos.indexOf(8)<0){_adm.pisos.push(8);_chg=true;}
+    if(_adm.pisos.indexOf(9)<0){_adm.pisos.push(9);_chg=true;}
+    if(_chg)sv('crm4_users',usuarios);
+  }
 })();
 // MIGRACIÓN: crear o completar Paqui Alicante
 (function(){
@@ -562,6 +568,7 @@ if(!_ha){usuarios=_defUsers.slice();sv('crm4_users',usuarios);}
     var _u=usuarios[_i];
     if(_u.rol!=='admin'&&_u.nombre.toLowerCase().indexOf('paqui')>=0){
       _found=true;
+      if(!Array.isArray(_u.pisos))_u.pisos=[];
       if(_u.pisos.indexOf(8)<0){_u.pisos.push(8);sv('crm4_users',usuarios);}
       break;
     }
