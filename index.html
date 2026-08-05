@@ -70,6 +70,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
 .tabs-wrap{background:#111;border-bottom:1px solid #2a2a2a;overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .tabs{display:flex;padding:0 10px;gap:2px;min-width:max-content;}
 .tab{padding:10px 13px;cursor:pointer;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:#666;transition:all .2s;white-space:nowrap;user-select:none;display:flex;align-items:center;min-height:44px;}
+.tab-city-lbl{padding:0 8px;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#cc0000;opacity:.65;display:flex;align-items:center;white-space:nowrap;pointer-events:none;user-select:none;border-bottom:3px solid transparent;border-left:1px solid #2a2a2a;margin-left:4px;padding-left:10px;}
 .tab:hover{color:#cc0000;background:rgba(204,0,0,.08);border-radius:6px 6px 0 0;}
 .tab.active{color:#fff;border-bottom-color:#cc0000;font-weight:700;}
 .badge{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:1px 6px;font-size:.68rem;margin-left:5px;font-weight:700;}
@@ -512,16 +513,16 @@ window.onerror=function(msg,src,line){
 };
 
 var PISOS=[
-  {id:0,nombre:"Francia 15",gastos:1325.79,habs:[{n:"CRISTINA",p:200,d:"VIERNES",r:50},{n:"CHANEL",p:260,d:"VIERNES",r:0},{n:"ESTHER",p:200,d:"MARTES",r:0},{n:"BELLA",p:230,d:"MX",r:0}]},
-  {id:1,nombre:"Francia 17",gastos:1800,habs:[{n:"EVA",p:260,d:"VIERNES",r:0},{n:"ANDREA",p:200,d:"SÁBADO",r:50},{n:"CAROLINA",p:200,d:"LUNES",r:50},{n:"KATY",p:250,d:"MARTES",r:0}]},
-  {id:2,nombre:"Alfred Torán 7",gastos:975,habs:[{n:"PAULA",p:260,d:"JUEVES",r:0},{n:"CAMILA",p:200,d:"LUNES",r:50},{n:"LORENA",p:200,d:"VIERNES",r:0},{n:"LUCY",p:220,d:"LUNES",r:0}]},
-  {id:3,nombre:"Francia 45",gastos:1532.25,habs:[{n:"ASCENSION",p:260,d:"MARTES",r:0},{n:"ANA",p:230,d:"SÁBADO",r:50},{n:"LETI",p:200,d:"MARTES",r:0},{n:"THAIS",p:200,d:"VIERNES",r:50}]},
-  {id:4,nombre:"Francia 65",gastos:1800,habs:[{n:"VEGA",p:260,d:"JUEVES",r:0},{n:"MARCELA",p:200,d:"LUNES",r:50},{n:"MAR",p:200,d:"MX",r:0},{n:"ALEJANDRA",p:230,d:"VIERNES",r:50},{n:"ANA",p:220,d:"LUNES",r:50}]},
-  {id:5,nombre:"Amadeo Roca 3",gastos:1700,habs:[{n:"MARIANA",p:260,d:"MX",r:0},{n:"ILONA",p:200,d:"JUEVES",r:0},{n:"ELENA",p:200,d:"LUNES",r:0},{n:"VICTORIA",p:230,d:"VIERNES",r:50}]},
-  {id:6,nombre:"Poeta Quintana 23",gastos:1400,habs:[{n:"SANDRA",p:280,d:"VIERNES",r:0},{n:"ALICIA",p:200,d:"DOMINGO",r:50},{n:"PATRICIA",p:220,d:"JUEVES",r:50},{n:"ANGIE",p:230,d:"DOMINGO",r:50}]},
-  {id:7,nombre:"Rambla Méndez N.",gastos:1500,desde:{anio:2026,mes:2},habs:[{n:"ELENA",p:300,d:"MARTES",r:50},{n:"VALENTINA",p:250,d:"MX",r:50},{n:"ANNY",p:220,d:"JUEVES",r:50},{n:"MARIA",p:220,d:"DOMINGO",r:50},{n:"LORENA",p:230,d:"SÁBADO",r:50}]},
-  {id:8,nombre:"Marquina 10",gastos:1600,desde:{anio:2026,mes:6},habs:[{n:"HAB 1",p:200,d:"VIERNES",r:0},{n:"HAB 2",p:200,d:"VIERNES",r:0},{n:"HAB 3",p:200,d:"VIERNES",r:0},{n:"HAB 4",p:200,d:"VIERNES",r:0}]},
-  {id:9,nombre:"Baleares 46",gastos:2000,desde:{anio:2026,mes:6},habs:[{n:"HAB 1",p:220,d:"VIERNES",r:0},{n:"HAB 2",p:220,d:"VIERNES",r:0},{n:"HAB 3",p:220,d:"VIERNES",r:0},{n:"HAB 4",p:220,d:"VIERNES",r:0}]}
+  {id:0,nombre:"Francia 15",ciudad:"Valencia",gastos:1325.79,habs:[{n:"CRISTINA",p:200,d:"VIERNES",r:50},{n:"CHANEL",p:260,d:"VIERNES",r:0},{n:"ESTHER",p:200,d:"MARTES",r:0},{n:"BELLA",p:230,d:"MX",r:0}]},
+  {id:1,nombre:"Francia 17",ciudad:"Valencia",gastos:1800,habs:[{n:"EVA",p:260,d:"VIERNES",r:0},{n:"ANDREA",p:200,d:"SÁBADO",r:50},{n:"CAROLINA",p:200,d:"LUNES",r:50},{n:"KATY",p:250,d:"MARTES",r:0}]},
+  {id:2,nombre:"Alfred Torán 7",ciudad:"Valencia",gastos:975,habs:[{n:"PAULA",p:260,d:"JUEVES",r:0},{n:"CAMILA",p:200,d:"LUNES",r:50},{n:"LORENA",p:200,d:"VIERNES",r:0},{n:"LUCY",p:220,d:"LUNES",r:0}]},
+  {id:3,nombre:"Francia 45",ciudad:"Valencia",gastos:1532.25,habs:[{n:"ASCENSION",p:260,d:"MARTES",r:0},{n:"ANA",p:230,d:"SÁBADO",r:50},{n:"LETI",p:200,d:"MARTES",r:0},{n:"THAIS",p:200,d:"VIERNES",r:50}]},
+  {id:4,nombre:"Francia 65",ciudad:"Valencia",gastos:1800,habs:[{n:"VEGA",p:260,d:"JUEVES",r:0},{n:"MARCELA",p:200,d:"LUNES",r:50},{n:"MAR",p:200,d:"MX",r:0},{n:"ALEJANDRA",p:230,d:"VIERNES",r:50},{n:"ANA",p:220,d:"LUNES",r:50}]},
+  {id:5,nombre:"Amadeo Roca 3",ciudad:"Valencia",gastos:1700,habs:[{n:"MARIANA",p:260,d:"MX",r:0},{n:"ILONA",p:200,d:"JUEVES",r:0},{n:"ELENA",p:200,d:"LUNES",r:0},{n:"VICTORIA",p:230,d:"VIERNES",r:50}]},
+  {id:6,nombre:"Poeta Quintana 23",ciudad:"Alicante",gastos:1400,habs:[{n:"SANDRA",p:280,d:"VIERNES",r:0},{n:"ALICIA",p:200,d:"DOMINGO",r:50},{n:"PATRICIA",p:220,d:"JUEVES",r:50},{n:"ANGIE",p:230,d:"DOMINGO",r:50}]},
+  {id:7,nombre:"Rambla Méndez N.",ciudad:"Alicante",gastos:1500,desde:{anio:2026,mes:2},habs:[{n:"ELENA",p:300,d:"MARTES",r:50},{n:"VALENTINA",p:250,d:"MX",r:50},{n:"ANNY",p:220,d:"JUEVES",r:50},{n:"MARIA",p:220,d:"DOMINGO",r:50},{n:"LORENA",p:230,d:"SÁBADO",r:50}]},
+  {id:8,nombre:"Marquina 10",ciudad:"Alicante",gastos:1600,desde:{anio:2026,mes:6},habs:[{n:"HAB 1",p:200,d:"VIERNES",r:0},{n:"HAB 2",p:200,d:"VIERNES",r:0},{n:"HAB 3",p:200,d:"VIERNES",r:0},{n:"HAB 4",p:200,d:"VIERNES",r:0}]},
+  {id:9,nombre:"Baleares 46",ciudad:"Valencia",gastos:2000,desde:{anio:2026,mes:6},habs:[{n:"HAB 1",p:220,d:"VIERNES",r:0},{n:"HAB 2",p:220,d:"VIERNES",r:0},{n:"HAB 3",p:220,d:"VIERNES",r:0},{n:"HAB 4",p:220,d:"VIERNES",r:0}]}
 ];
 var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 var MESES_CORTO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -1109,32 +1110,38 @@ function renderDashboard(){
     +'<div class="stats-grid" style="margin-bottom:18px;">'
     +'<div class="stat v" style="cursor:pointer;" onclick="mostrarVista(\'anual\')" title="Ver resumen por años"><div class="lbl">✅ Total contabilizado</div><div class="val" style="color:var(--verde-dark)">€'+acumContab.toLocaleString()+'</div><div class="sub">↗ Ver desglose por años</div></div>'
     +'</div>'
-    +'<div class="pisos-grid">'+PISOS.map(function(p){
-      var c=calcPiso(p.id,anioActual,mesActual);
-      var pct2=c.esperado>0?Math.round((c.contab+c.recog)/c.esperado*100):0;
-      var chips=p.habs.map(function(h,hIdx){
-        if(isVacia(p.id,hIdx)) return '<div class="chip v">VACÍA</div>';
-        var nombre=getNombre(p.id,hIdx).split(' ')[0];
-        var tieneContab=false,tieneRecog=false;
-        for(var s=0;s<5;s++){
-          if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
-          var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
-          var tot=getTot(data);
-          var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-          if(est==='contabilizada') tieneContab=true;
-          else if(est==='recogida'&&(tot>0||data.done)) tieneRecog=true;
-        }
-        return '<div class="chip '+(tieneContab?'c':tieneRecog?'r':'n')+'">'+nombre+'</div>';
+    +['Valencia','Alicante'].map(function(ciudad){
+      var pisosC=PISOS.filter(function(p){return p.ciudad===ciudad&&tienePiso(p.id);});
+      if(pisosC.length===0) return '';
+      var cartas=pisosC.map(function(p){
+        var c=calcPiso(p.id,anioActual,mesActual);
+        var pct2=c.esperado>0?Math.round((c.contab+c.recog)/c.esperado*100):0;
+        var chips=p.habs.map(function(h,hIdx){
+          if(isVacia(p.id,hIdx)) return '<div class="chip v">VACÍA</div>';
+          var nombre=getNombre(p.id,hIdx).split(' ')[0];
+          var tieneContab=false,tieneRecog=false;
+          for(var s=0;s<5;s++){
+            if(!isSemActiva(anioActual,mesActual,p.id,s)) continue;
+            var data=getPagoData(anioActual,mesActual,p.id,hIdx,s);
+            var tot=getTot(data);
+            var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
+            if(est==='contabilizada') tieneContab=true;
+            else if(est==='recogida'&&(tot>0||data.done)) tieneRecog=true;
+          }
+          return '<div class="chip '+(tieneContab?'c':tieneRecog?'r':'n')+'">'+nombre+'</div>';
+        }).join('');
+        return '<div class="piso-card" onclick="mostrarVista(\'piso-'+p.id+'\')"><h3>🏠 '+p.nombre+'</h3>'
+          +'<div class="prog-bar"><div class="prog-fill contab" style="width:'+Math.round(c.contab/(c.esperado||1)*100)+'%"></div></div>'
+          +'<div style="font-size:.71rem;color:var(--suave);margin-bottom:5px">'+pct2+'% cobrado'+(c.recog>0?' · 📦 €'+c.recog.toLocaleString()+' por contabilizar':'')+'</div>'
+          +'<div class="chips">'+chips+'</div>'
+          +'<div class="piso-footer"><span style="color:var(--verde-dark);font-weight:700">✅ €'+c.contab.toLocaleString()+'</span>'
+          +(c.recog>0?'<span style="color:var(--ambar-dark)">📦 €'+c.recog.toLocaleString()+'</span>':'')
+          +(c.pendiente>0?'<span style="color:var(--rojo-dark)">✗ €'+c.pendiente.toLocaleString()+'</span>':'')
+          +'</div></div>';
       }).join('');
-      return '<div class="piso-card" onclick="mostrarVista(\'piso-'+p.id+'\')"><h3>🏠 '+p.nombre+'</h3>'
-        +'<div class="prog-bar"><div class="prog-fill contab" style="width:'+Math.round(c.contab/(c.esperado||1)*100)+'%"></div></div>'
-        +'<div style="font-size:.71rem;color:var(--suave);margin-bottom:5px">'+pct2+'% cobrado'+(c.recog>0?' · 📦 €'+c.recog.toLocaleString()+' por contabilizar':'')+'</div>'
-        +'<div class="chips">'+chips+'</div>'
-        +'<div class="piso-footer"><span style="color:var(--verde-dark);font-weight:700">✅ €'+c.contab.toLocaleString()+'</span>'
-        +(c.recog>0?'<span style="color:var(--ambar-dark)">📦 €'+c.recog.toLocaleString()+'</span>':'')
-        +(c.pendiente>0?'<span style="color:var(--rojo-dark)">✗ €'+c.pendiente.toLocaleString()+'</span>':'')
-        +'</div></div>';
-    }).join('')+'</div>';
+      return '<div style="font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#cc0000;margin:16px 0 8px 2px;">📍 '+ciudad+'</div>'
+        +'<div class="pisos-grid" style="margin-bottom:8px;">'+cartas+'</div>';
+    }).join('');
 }
 
 // VISTA PISO
@@ -1496,11 +1503,20 @@ function init(){
   var tabs=document.getElementById('tabs-container');
   var alertaTab=document.getElementById('tab-alertas');
   var dvD=document.createElement('div');dvD.className='view active';dvD.id='view-dashboard';main.appendChild(dvD);
+  // Crear vistas (en orden original para integridad de datos)
   PISOS.forEach(function(p){
-    var tab=document.createElement('div');tab.className='tab';tab.id='tab-piso-'+p.id;
-    tab.textContent=p.nombre;tab.onclick=(function(id){return function(){mostrarVista('piso-'+id);};})(p.id);
-    tabs.insertBefore(tab,alertaTab);
     var dv=document.createElement('div');dv.className='view';dv.id='view-piso-'+p.id;main.appendChild(dv);
+  });
+  // Crear tabs agrupados por ciudad
+  ['Valencia','Alicante'].forEach(function(ciudad){
+    var lbl=document.createElement('div');lbl.className='tab-city-lbl';lbl.textContent='📍 '+ciudad;
+    tabs.insertBefore(lbl,alertaTab);
+    PISOS.forEach(function(p){
+      if(p.ciudad!==ciudad) return;
+      var tab=document.createElement('div');tab.className='tab';tab.id='tab-piso-'+p.id;
+      tab.textContent=p.nombre;tab.onclick=(function(id){return function(){mostrarVista('piso-'+id);};})(p.id);
+      tabs.insertBefore(tab,alertaTab);
+    });
   });
   var dvAl=document.createElement('div');dvAl.className='view';dvAl.id='view-alertas';main.appendChild(dvAl);
   var dvAn=document.createElement('div');dvAn.className='view';dvAn.id='view-anual';main.appendChild(dvAn);
