@@ -520,8 +520,8 @@ var PISOS=[
   {id:5,nombre:"Amadeo Roca 3",gastos:1700,habs:[{n:"MARIANA",p:260,d:"MX",r:0},{n:"ILONA",p:200,d:"JUEVES",r:0},{n:"ELENA",p:200,d:"LUNES",r:0},{n:"VICTORIA",p:230,d:"VIERNES",r:50}]},
   {id:6,nombre:"Poeta Quintana 23",gastos:1400,habs:[{n:"SANDRA",p:280,d:"VIERNES",r:0},{n:"ALICIA",p:200,d:"DOMINGO",r:50},{n:"PATRICIA",p:220,d:"JUEVES",r:50},{n:"ANGIE",p:230,d:"DOMINGO",r:50}]},
   {id:7,nombre:"Rambla Méndez N.",gastos:1500,desde:{anio:2026,mes:2},habs:[{n:"ELENA",p:300,d:"MARTES",r:50},{n:"VALENTINA",p:250,d:"MX",r:50},{n:"ANNY",p:220,d:"JUEVES",r:50},{n:"MARIA",p:220,d:"DOMINGO",r:50},{n:"LORENA",p:230,d:"SÁBADO",r:50}]},
-  {id:8,nombre:"Marquina 10",gastos:1600,desde:{anio:2026,mes:7},habs:[{n:"HAB 1",p:200,d:"VIERNES",r:0},{n:"HAB 2",p:200,d:"VIERNES",r:0},{n:"HAB 3",p:200,d:"VIERNES",r:0},{n:"HAB 4",p:200,d:"VIERNES",r:0}]},
-  {id:9,nombre:"Baleares 46",gastos:2000,desde:{anio:2026,mes:7},habs:[{n:"HAB 1",p:220,d:"VIERNES",r:0},{n:"HAB 2",p:220,d:"VIERNES",r:0},{n:"HAB 3",p:220,d:"VIERNES",r:0},{n:"HAB 4",p:220,d:"VIERNES",r:0}]}
+  {id:8,nombre:"Marquina 10",gastos:1600,desde:{anio:2026,mes:6},habs:[{n:"HAB 1",p:200,d:"VIERNES",r:0},{n:"HAB 2",p:200,d:"VIERNES",r:0},{n:"HAB 3",p:200,d:"VIERNES",r:0},{n:"HAB 4",p:200,d:"VIERNES",r:0}]},
+  {id:9,nombre:"Baleares 46",gastos:2000,desde:{anio:2026,mes:6},habs:[{n:"HAB 1",p:220,d:"VIERNES",r:0},{n:"HAB 2",p:220,d:"VIERNES",r:0},{n:"HAB 3",p:220,d:"VIERNES",r:0},{n:"HAB 4",p:220,d:"VIERNES",r:0}]}
 ];
 var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 var MESES_CORTO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -561,19 +561,20 @@ if(!_ha){usuarios=_defUsers.slice();sv('crm4_users',usuarios);}
     if(_chg)sv('crm4_users',usuarios);
   }
 })();
-// MIGRACIÓN: crear o completar Paqui Alicante
+// MIGRACIÓN: crear Paqui Alicante oculta (socio de Marquina 10, no aparece en login)
 (function(){
   var _found=false;
   for(var _i=0;_i<usuarios.length;_i++){
     var _u=usuarios[_i];
-    if(_u.rol!=='admin'&&_u.nombre.toLowerCase().indexOf('paqui')>=0){
+    if(_u.nombre.toLowerCase().indexOf('paqui')>=0){
       _found=true;
+      if(!_u.oculto){_u.oculto=true;sv('crm4_users',usuarios);}
       if(!Array.isArray(_u.pisos))_u.pisos=[];
       if(_u.pisos.indexOf(8)<0){_u.pisos.push(8);sv('crm4_users',usuarios);}
       break;
     }
   }
-  if(!_found){usuarios.push({id:'u_paqui',nombre:'Paqui Alicante',pin:'3333',rol:'trab',pisos:[8]});sv('crm4_users',usuarios);}
+  if(!_found){usuarios.push({id:'u_paqui',nombre:'Paqui Alicante',pin:'3333',rol:'trab',pisos:[8],oculto:true});sv('crm4_users',usuarios);}
 })();
 // MIGRACIÓN: crear Borja Lopez si no existe
 (function(){
@@ -618,7 +619,7 @@ function pstep(n){
 }
 function renderUcards(){
   var c=document.getElementById('ucards');if(!c) return;
-  c.innerHTML=usuarios.map(function(u,i){
+  c.innerHTML=usuarios.filter(function(u){return!u.oculto;}).map(function(u,i){
     var col=UCOLORS[i%UCOLORS.length];
     var ini=u.nombre.charAt(0).toUpperCase();
     return '<button class="ucard" onclick="selUser(\''+u.id+'\')"><div class="ucard-av" style="background:'+col+'">'+ini+'</div><div><div class="ucard-nm">'+u.nombre+'</div><div class="ucard-rl '+(u.rol==='admin'?'rl-admin':'rl-trab')+'">'+(u.rol==='admin'?'👑 Administrador':'👤 Socio colaborador')+'</div></div></button>';
@@ -1150,7 +1151,14 @@ function renderPisoView(pid){
   }
   var totSems=[0,0,0,0,0];
   var filas='';
-  piso.habs.forEach(function(hab,hIdx){
+  var _DIA_ORD={LUNES:0,MARTES:1,MX:2,'MIÉRCOLES':2,MIERCOLES:2,JUEVES:3,VIERNES:4,'SÁBADO':5,SABADO:5,DOMINGO:6};
+  var _habOrden=piso.habs.map(function(h,i){return i;}).sort(function(a,b){
+    var da=_DIA_ORD[(getHabDia(pid,a)||'').toUpperCase()];
+    var db=_DIA_ORD[(getHabDia(pid,b)||'').toUpperCase()];
+    return (da===undefined?99:da)-(db===undefined?99:db);
+  });
+  _habOrden.forEach(function(hIdx){
+    var hab=piso.habs[hIdx];
     var vacia=isVacia(pid,hIdx);
     var nombre=getNombre(pid,hIdx);
     var reservaImp=getReserva(pid,hIdx);
