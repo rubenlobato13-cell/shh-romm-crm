@@ -677,6 +677,7 @@ var semsAct=sg('crm4_sems',{});
 var gastosExtra=sg('crm4_gastos',{});
 var precios=sg('crm4_precios',{});
 var aniosExcluidos=sg('crm4_anios_excl',[2025]);
+var mobileSemActiva={};
 var stockData=sg('crm4_stock',{});
 var ventasList=sg('crm4_ventas',[]);
 var reservasLog=sg('crm4_reservas_log',[]);
@@ -1478,6 +1479,118 @@ function renderPisoView(pid){
   var neto4=piso.habs.reduce(function(a,h,hi){return a+getHabPrecio(pid,hi);},0)*4-piso.gastos;
   var neto5=piso.habs.reduce(function(a,h,hi){return a+getHabPrecio(pid,hi);},0)*5-piso.gastos;
   var el=document.getElementById('view-piso-'+pid);if(!el) return;
+  var _DIA_ORD={LUNES:0,MARTES:1,MX:2,'MIÉRCOLES':2,MIERCOLES:2,JUEVES:3,VIERNES:4,'SÁBADO':5,SABADO:5,DOMINGO:6};
+  var _habOrden=piso.habs.map(function(h,i){return i;}).sort(function(a,b){
+    var da=_DIA_ORD[(getHabDia(pid,a)||'').toUpperCase()];
+    var db=_DIA_ORD[(getHabDia(pid,b)||'').toUpperCase()];
+    return (da===undefined?99:da)-(db===undefined?99:db);
+  });
+  var botonesRow='<div class="btns-row">'
+    +'<button class="btn-ambar" onclick="marcarPisoRecogido('+pid+')">📦 Todas recogidas</button>'
+    +(esAdmin()?'<button class="btn-green" onclick="marcarPisoContab('+pid+')">✅ Todas contabilizadas</button>':'')
+    +(esAdmin()?'<button class="btn-ambar" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">💸 Gastos extra</button>':'')
+    +(esTrab()&&getSocioPiso(pid)&&getSocioPiso(pid).id===usuarioActual.id?'<button class="btn-outline" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">📋 Proponer gasto</button>':'')
+    +(esAdmin()?'<button class="btn-outline" onclick="limpiarMes('+pid+')">🗑 Limpiar mes</button>':'')
+    +'</div>';
+  var hint=esTrab()
+    ?'<div style="margin-bottom:10px;padding:7px 12px;background:var(--ambar-bg);border-radius:8px;font-size:.78rem;color:var(--ambar-dark);">📦 Puedes marcar pagos como <strong>Recogidos</strong>. Rubén confirmará el estado contabilizado.</div>'
+    :'<div style="margin-bottom:10px;padding:7px 12px;background:var(--azul-bg);border-radius:8px;font-size:.78rem;color:var(--azul-dark);">💡 📦 Recogida = socia cobró · ✅ Contabilizada = Rubén recibió · ✎ editar · ✕ borrar</div>';
+  var resumenRow='<div class="resumen-row">'
+    +'<div class="res-card"><div class="rl">✅ Contabilizado</div><div class="rv" style="color:var(--verde-dark)">€'+c.contab.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">📦 Recogido</div><div class="rv" style="color:var(--ambar-dark)">€'+c.recog.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">✗ Pendiente</div><div class="rv" style="color:var(--rojo-dark)">€'+c.pendiente.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">Neto 4 sem.</div><div class="rv" style="color:var(--verde-dark)">€'+neto4.toLocaleString()+'</div></div>'
+    +'<div class="res-card"><div class="rl">Neto 5 sem.</div><div class="rv" style="color:var(--azul-dark)">€'+neto5.toLocaleString()+'</div></div>'
+    +(c.gastosEx>0?'<div class="res-card" style="border:1px solid rgba(245,158,11,.4);"><div class="rl">💸 Gastos extra</div><div class="rv" style="color:var(--ambar-dark)">€'+c.gastosEx.toLocaleString()+'</div></div>':'')
+    +'</div>'
+    +(function(){
+      var socio=getSocioPiso(pid);if(!socio) return '';
+      var esSocioDePiso=esTrab()&&usuarioActual&&socio.id===usuarioActual.id;
+      if(!esAdmin()&&!esSocioDePiso) return '';
+      var t=c.contab-piso.gastos-c.gastosEx;
+      var mi=Math.round(t*0.5*100)/100;var sc2=Math.round(t*0.5*100)/100;
+      return '<div style="margin-top:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(204,0,0,.1),rgba(204,0,0,.05));border:1px solid rgba(204,0,0,.3);border-radius:11px;">'
+        +'<div style="font-size:.72rem;color:#cc0000;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">💰 Reparto 50/50 · Socio: '+socio.nombre+'</div>'
+        +'<div style="display:flex;gap:10px;">'
+        +'<div style="flex:1;background:#111;border-radius:8px;padding:9px;text-align:center;border:1px solid #2a2a2a;">'
+        +'<div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">Tu parte</div>'
+        +'<div style="font-size:1.1rem;font-weight:800;color:var(--verde-dark)">€'+mi.toLocaleString()+'</div></div>'
+        +'<div style="flex:1;background:#111;border-radius:8px;padding:9px;text-align:center;border:1px solid #2a2a2a;">'
+        +'<div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">'+socio.nombre+'</div>'
+        +'<div style="font-size:1.1rem;font-weight:800;color:var(--ambar-dark)">€'+sc2.toLocaleString()+'</div></div>'
+        +'</div></div>';
+    })();
+
+  var isMob=window.innerWidth<=640;
+
+  if(isMob){
+    // ---- VISTA MÓVIL: tarjetas por semana ----
+    var semMob=mobileSemActiva[pid]!==undefined?mobileSemActiva[pid]:0;
+    // Si la semana guardada ya no está activa, ir a la primera activa
+    if(!isSemActiva(anioActual,mesActual,pid,semMob)){
+      for(var sa=0;sa<5;sa++){if(isSemActiva(anioActual,mesActual,pid,sa)){semMob=sa;break;}}
+    }
+    // Nav de semanas
+    var semNavBtns='';
+    for(var sn=0;sn<5;sn++){
+      if(!isSemActiva(anioActual,mesActual,pid,sn)) continue;
+      var esActSem=sn===semMob;
+      semNavBtns+='<button onclick="setMobileSem('+pid+','+sn+')" style="flex:1;background:'+(esActSem?'var(--rojo)':'rgba(204,0,0,.12)')+';color:'+(esActSem?'#fff':'var(--texto)')+';border:none;border-radius:10px;padding:12px 4px;font-weight:700;font-size:.95rem;min-height:46px;cursor:pointer;-webkit-tap-highlight-color:transparent;">Sem '+(sn+1)+(esAdmin()?' <button onclick="event.stopPropagation();toggleSem('+pid+','+sn+')" style="background:none;border:none;color:inherit;font-size:.7rem;cursor:pointer;padding:0 2px;">'+(sn<4?'✓':'○')+'</button>':'')+'</button>';
+    }
+    var semNav='<div style="display:flex;gap:6px;margin-bottom:14px;">'+semNavBtns+'</div>';
+    // Tarjetas de habitaciones
+    var cards='';
+    var totSemMob=0;
+    _habOrden.forEach(function(hIdx){
+      var vacia=isVacia(pid,hIdx);
+      var nombre=getNombre(pid,hIdx);
+      var habP=getHabPrecio(pid,hIdx);
+      var habD=getHabDia(pid,hIdx);
+      var resData2=getReservaData(pid,hIdx);
+      var resHtmlM=resData2.imp>0
+        ?'<span class="reserva-tag" onclick="abrirModalReserva('+pid+','+hIdx+')" style="font-size:.78rem;">'+(resData2.metodo==='bizum'?'💳':'💵')+' €'+resData2.imp+'</span>'
+        :'<button class="btn-add-reserva" onclick="abrirModalReserva('+pid+','+hIdx+')" style="font-size:.76rem;padding:5px 9px;">+ Reserva</button>';
+      if(vacia){
+        cards+='<div style="background:#111;border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--borde);opacity:.4;display:flex;justify-content:space-between;align-items:center;">'
+          +'<em style="color:#94a3b8;font-size:.9rem;">VACÍA</em>'
+          +'<button class="btn-edit-n" onclick="abrirModalNombre('+pid+','+hIdx+')" style="margin-left:6px;">✏</button>'
+          +'</div>';
+        return;
+      }
+      var data2=getPagoData(anioActual,mesActual,pid,hIdx,semMob);
+      var tot2=getTot(data2);
+      var est2=data2.parciales.length===0&&!data2.done?'pendiente':data2.estado||'recogida';
+      var isParcial2=!data2.done&&tot2>0&&tot2<habP;
+      var pct2=habP>0?Math.min(100,Math.round(tot2/habP*100)):0;
+      var notas2=data2.parciales.filter(function(p){return p.imp;}).map(function(p){var eB=isPBizum(p);return (eB?'💳':'💵')+'€'+p.imp+(eB&&p.titular?' ('+p.titular+')':'')+(eB&&p.fecha?' '+p.fecha:'');}).join(' + ');
+      var bizTotal2=data2.parciales.reduce(function(t,p){return t+(isPBizum(p)?parseFloat(p.imp)||0:0);},0);
+      var lbl2=est2==='pendiente'?'✗ Sin cobrar — €'+habP:est2==='contabilizada'?'✅ '+(tot2>0?'€'+tot2:'€'+habP):est2==='recogida'&&bizTotal2>0?(bizTotal2===tot2?'💳 Cobrado €'+tot2:'💳€'+bizTotal2+' + 📦€'+(tot2-bizTotal2)):'📦 Recogido €'+(tot2>0?tot2:habP);
+      if(est2!=='pendiente') totSemMob+=tot2>0?tot2:habP;
+      cards+='<div style="background:#111;border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--borde);">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
+        +'<div>'
+        +'<div style="font-weight:800;font-size:1.08rem;">'+nombre+'<button class="btn-edit-n" onclick="abrirModalNombre('+pid+','+hIdx+')" style="margin-left:7px;">✏</button></div>'
+        +'<div style="color:var(--suave);font-size:.8rem;margin-top:3px;">'+habD+' · <span style="color:var(--azul-dark);font-weight:700;">€'+habP+'</span>/sem'+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPrecio('+pid+','+hIdx+')" style="margin-left:5px;">✏</button>':'')+'</div>'
+        +'</div>'
+        +resHtmlM
+        +'</div>'
+        +'<button class="pago-btn '+(est2==='pendiente'?'pendiente':est2==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+semMob+')" style="width:100%;min-height:54px;font-size:1.05rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:10px;">'
+        +'<span>'+lbl2+'</span><span style="font-size:.85rem;opacity:.7;">✎</span></button>'
+        +(isParcial2?'<div class="prog-mini" style="margin-top:8px;"><div class="prog-mini-fill '+est2+'" style="width:'+pct2+'%"></div></div>':'')
+        +(notas2?'<div class="nota-display" style="margin-top:7px;font-size:.82rem;">📝 '+notas2+'</div>':'')
+        +(est2!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+semMob+')" style="margin-top:9px;width:100%;min-height:40px;font-size:.84rem;border-radius:8px;">✕ Borrar pago</button>':'')
+        +'</div>';
+    });
+    var totalBarM='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:13px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">'
+      +'<span style="font-size:.82rem;color:var(--suave);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Total Sem '+(semMob+1)+'</span>'
+      +'<span style="font-weight:800;font-size:1.2rem;color:var(--verde-dark);">€'+totSemMob.toLocaleString()+'</span>'
+      +'</div>';
+    el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab · Gastos: €'+piso.gastos.toLocaleString()+'/mes · '+MESES[mesActual]+' '+anioActual+'</div></div>'+botonesRow+'</div>'
+      +hint+semNav+cards+totalBarM+resumenRow;
+    return;
+  }
+
+  // ---- VISTA ESCRITORIO: tabla completa ----
   var semHdrs='';
   for(var s=0;s<5;s++){
     var act=isSemActiva(anioActual,mesActual,pid,s);
@@ -1485,17 +1598,10 @@ function renderPisoView(pid){
   }
   var totSems=[0,0,0,0,0];
   var filas='';
-  var _DIA_ORD={LUNES:0,MARTES:1,MX:2,'MIÉRCOLES':2,MIERCOLES:2,JUEVES:3,VIERNES:4,'SÁBADO':5,SABADO:5,DOMINGO:6};
-  var _habOrden=piso.habs.map(function(h,i){return i;}).sort(function(a,b){
-    var da=_DIA_ORD[(getHabDia(pid,a)||'').toUpperCase()];
-    var db=_DIA_ORD[(getHabDia(pid,b)||'').toUpperCase()];
-    return (da===undefined?99:da)-(db===undefined?99:db);
-  });
   _habOrden.forEach(function(hIdx){
     var hab=piso.habs[hIdx];
     var vacia=isVacia(pid,hIdx);
     var nombre=getNombre(pid,hIdx);
-    var reservaImp=getReserva(pid,hIdx);
     var celdas='';
     for(var s2=0;s2<5;s2++){
       var act2=isSemActiva(anioActual,mesActual,pid,s2);
@@ -1510,9 +1616,8 @@ function renderPisoView(pid){
       var notas=data.parciales.filter(function(p){return p.imp;}).map(function(p){var eB=isPBizum(p);return (eB?'💳':'💵')+'€'+p.imp+(eB&&p.titular?' ('+p.titular+')':'')+(eB&&p.fecha?' '+p.fecha:'');}).join(' + ');
       var bizTotal=data.parciales.reduce(function(t,p){return t+(isPBizum(p)?parseFloat(p.imp)||0:0);},0);
       var labelPfx=est==='pendiente'?'✗ €'+habP:est==='contabilizada'?'✅ '+(tot>0?'€'+tot:'€'+habP):est==='recogida'&&bizTotal>0?(bizTotal===tot?'💳 €'+tot:'💳€'+bizTotal+'+📦€'+(tot-bizTotal)):'📦 €'+(tot>0?tot:habP);
-      var label=labelPfx;
       celdas+='<td class="'+(act2?'':'sem-disabled')+'"><div class="celda-pago"><div class="pago-row-top">'
-        +'<button class="pago-btn '+(est==='pendiente'?'pendiente':est==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+s2+')"><span>'+label+'</span><span style="font-size:.7rem;opacity:.6">✎</span></button>'
+        +'<button class="pago-btn '+(est==='pendiente'?'pendiente':est==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+s2+')"><span>'+labelPfx+'</span><span style="font-size:.7rem;opacity:.6">✎</span></button>'
         +(est!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+s2+')" title="Borrar">✕</button>':'')
         +'</div>'
         +(isParcial?'<div class="prog-mini"><div class="prog-mini-fill '+est+'" style="width:'+pct+'%"></div></div>':'')
@@ -1533,53 +1638,16 @@ function renderPisoView(pid){
   });
   var totCeldas='';
   for(var sc=0;sc<5;sc++){var actc=isSemActiva(anioActual,mesActual,pid,sc);totCeldas+='<td class="'+(actc?'':'sem-disabled')+'">€'+totSems[sc].toLocaleString()+'</td>';}
-
-  var botonesRow='<div class="btns-row">'
-    +'<button class="btn-ambar" onclick="marcarPisoRecogido('+pid+')">📦 Todas recogidas</button>'
-    +(esAdmin()?'<button class="btn-green" onclick="marcarPisoContab('+pid+')">✅ Todas contabilizadas</button>':'')
-    +(esAdmin()?'<button class="btn-ambar" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">💸 Gastos extra</button>':'')
-    +(esTrab()&&getSocioPiso(pid)&&getSocioPiso(pid).id===usuarioActual.id?'<button class="btn-outline" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">📋 Proponer gasto</button>':'')
-    +(esAdmin()?'<button class="btn-outline" onclick="limpiarMes('+pid+')">🗑 Limpiar mes</button>':'')
-    +'</div>';
-  var hint=esTrab()
-    ?'<div style="margin-bottom:10px;padding:7px 12px;background:var(--ambar-bg);border-radius:8px;font-size:.78rem;color:var(--ambar-dark);">📦 Puedes marcar pagos como <strong>Recogidos</strong>. Rubén confirmará el estado contabilizado.</div>'
-    :'<div style="margin-bottom:10px;padding:7px 12px;background:var(--azul-bg);border-radius:8px;font-size:.78rem;color:var(--azul-dark);">💡 📦 Recogida = socia cobró · ✅ Contabilizada = Rubén recibió · ✎ editar · ✕ borrar</div>';
-
   el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab · Gastos fijos: €'+piso.gastos.toLocaleString()+'/mes</div></div>'+botonesRow+'</div>'
     +hint
     +'<div class="tabla-wrap"><table class="tabla"><thead>'
     +'<tr class="th1"><th colspan="4">'+MESES[mesActual]+' '+anioActual+'</th>'+semHdrs+'</tr>'
     +'<tr class="th2"><th class="info-c">Inquilina</th><th class="info-c">Precio</th><th class="info-c">Día pago</th><th class="info-c">Reserva</th><th>Sem 1</th><th>Sem 2</th><th>Sem 3</th><th>Sem 4</th><th>Sem 5</th></tr>'
     +'</thead><tbody>'+filas+'</tbody><tfoot><tr><td colspan="4">TOTAL SEMANA</td>'+totCeldas+'</tr></tfoot></table></div>'
-    +'<div class="resumen-row">'
-    +'<div class="res-card"><div class="rl">✅ Contabilizado</div><div class="rv" style="color:var(--verde-dark)">€'+c.contab.toLocaleString()+'</div></div>'
-    +'<div class="res-card"><div class="rl">📦 Recogido</div><div class="rv" style="color:var(--ambar-dark)">€'+c.recog.toLocaleString()+'</div></div>'
-    +'<div class="res-card"><div class="rl">✗ Pendiente</div><div class="rv" style="color:var(--rojo-dark)">€'+c.pendiente.toLocaleString()+'</div></div>'
-    +'<div class="res-card"><div class="rl">Neto 4 sem.</div><div class="rv" style="color:var(--verde-dark)">€'+neto4.toLocaleString()+'</div></div>'
-    +'<div class="res-card"><div class="rl">Neto 5 sem.</div><div class="rv" style="color:var(--azul-dark)">€'+neto5.toLocaleString()+'</div></div>'
-    +(c.gastosEx>0?'<div class="res-card" style="border:1px solid rgba(245,158,11,.4);"><div class="rl">💸 Gastos extra</div><div class="rv" style="color:var(--ambar-dark)">€'+c.gastosEx.toLocaleString()+'</div></div>':'')
-    +'</div>'
-    +(function(){
-        var socio=getSocioPiso(pid);
-        if(!socio) return '';
-        var esSocioDePiso=esTrab()&&usuarioActual&&socio.id===usuarioActual.id;
-        if(!esAdmin()&&!esSocioDePiso) return '';
-        var t=c.contab-piso.gastos-c.gastosEx;
-        var mi=Math.round(t*0.5*100)/100;
-        var sc=Math.round(t*0.5*100)/100;
-        return '<div style="margin-top:10px;padding:11px 14px;background:linear-gradient(135deg,rgba(204,0,0,.1),rgba(204,0,0,.05));border:1px solid rgba(204,0,0,.3);border-radius:11px;">'
-          +'<div style="font-size:.72rem;color:#cc0000;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">💰 Reparto 50/50 · Socio: '+socio.nombre+'</div>'
-          +'<div style="display:flex;gap:10px;">'
-          +'<div style="flex:1;background:#111;border-radius:8px;padding:9px;text-align:center;border:1px solid #2a2a2a;">'
-          +'<div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">Tu parte</div>'
-          +'<div style="font-size:1.1rem;font-weight:800;color:var(--verde-dark)">€'+mi.toLocaleString()+'</div></div>'
-          +'<div style="flex:1;background:#111;border-radius:8px;padding:9px;text-align:center;border:1px solid #2a2a2a;">'
-          +'<div style="font-size:.68rem;color:#9ca3af;text-transform:uppercase;margin-bottom:3px;">'+socio.nombre+'</div>'
-          +'<div style="font-size:1.1rem;font-weight:800;color:var(--ambar-dark)">€'+sc.toLocaleString()+'</div></div>'
-          +'</div></div>';
-      })();
+    +resumenRow;
 }
 
+function setMobileSem(pid,s){mobileSemActiva[pid]=s;renderPisoView(pid);}
 function marcarPisoRecogido(pid){
   var piso=PISOS[pid];
   piso.habs.forEach(function(hab,hIdx){
