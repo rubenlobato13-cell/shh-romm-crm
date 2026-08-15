@@ -197,6 +197,40 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
 .btn-add-gasto{background:none;border:1px dashed #94a3b8;color:#94a3b8;border-radius:5px;padding:1px 5px;cursor:pointer;font-size:.65rem;line-height:1.4;}
 .btn-add-gasto:hover{border-color:var(--rojo);color:var(--rojo-dark);}
 .gasto-items{font-size:.65rem;color:var(--suave);max-width:80px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+/* TIENDA */
+.tienda-cat-hdr{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#cc0000;opacity:.8;padding:12px 2px 6px;border-bottom:1px solid #2a2a2a;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.art-row{background:#161616;border-radius:10px;padding:10px 14px;margin-bottom:5px;border:1px solid #2a2a2a;display:grid;grid-template-columns:1fr 80px 80px 80px 70px;align-items:center;gap:10px;}
+.art-row:hover{border-color:#333;}
+.art-nom{font-size:.81rem;font-weight:600;color:var(--texto);line-height:1.3;}
+.art-inp{width:100%;padding:5px 6px;border:1.5px solid #2a2a2a;border-radius:6px;font-size:14px;text-align:right;background:#111;color:#f0f0f0;}
+.art-inp:focus{outline:none;border-color:#cc0000;}
+.art-lbl{font-size:.6rem;text-align:center;color:var(--suave);display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:.06em;}
+.art-benef{font-size:.85rem;font-weight:800;text-align:right;}
+.art-col{display:flex;flex-direction:column;}
+.art-tbl-hdr{display:grid;grid-template-columns:1fr 80px 80px 80px 70px;gap:10px;padding:5px 14px;font-size:.63rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px;}
+.tienda-resumen{background:#111;border-radius:10px;padding:12px 16px;margin:14px 0;border:1px solid #2a2a2a;display:flex;gap:20px;flex-wrap:wrap;}
+.tienda-stat{display:flex;flex-direction:column;}
+.tienda-stat .ts-lbl{font-size:.65rem;color:var(--suave);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.tienda-stat .ts-val{font-size:1.05rem;font-weight:800;}
+.venta-item{background:#161616;border-radius:9px;padding:9px 13px;margin-bottom:5px;border:1px solid #2a2a2a;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.venta-item:hover{border-color:#333;}
+.vi-info .vi-nom{font-size:.82rem;font-weight:700;}
+.vi-info .vi-sub{font-size:.7rem;color:var(--suave);margin-top:1px;}
+.vi-right{text-align:right;}
+.vi-pvp{font-size:.9rem;font-weight:800;color:var(--verde-dark);}
+.vi-pfc{font-size:.68rem;color:var(--suave);}
+.btn-del-v{background:none;border:none;color:var(--rojo);cursor:pointer;font-size:.8rem;padding:3px 7px;border-radius:5px;min-height:30px;}
+.btn-del-v:hover{background:var(--rojo-bg);}
+.tienda-ventas-section{margin-top:22px;}
+.tienda-ventas-filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.tienda-ventas-filters select{padding:6px 8px;border:1.5px solid #2a2a2a;border-radius:7px;font-size:14px;background:#111;color:#f0f0f0;}
+.art-compra-box{background:#111;border-radius:8px;padding:10px;margin-top:5px;border:1px solid #2a2a2a;}
+.art-compra-grid{display:grid;grid-template-columns:1fr 80px 90px;gap:8px;margin-top:8px;}
+.art-compra-sel{width:100%;padding:7px 9px;border:1.5px solid #2a2a2a;border-radius:7px;font-size:14px;background:#1a1a1a;color:#f0f0f0;}
+.art-compra-sel:focus{outline:none;border-color:#cc0000;}
+.art-compra-inp{padding:7px;border:1.5px solid #2a2a2a;border-radius:7px;font-size:14px;background:#1a1a1a;color:#f0f0f0;width:100%;text-align:right;}
+.art-compra-inp:focus{outline:none;border-color:#cc0000;}
+.art-benef-info{margin-top:6px;font-size:.75rem;color:var(--verde-dark);min-height:16px;}
 .anual-leyenda{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:.78rem;}
 .ley-item{display:flex;align-items:center;gap:5px;}
 .ley-dot{width:10px;height:10px;border-radius:50%;}
@@ -367,6 +401,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
     <div class="tab" onclick="mostrarVista('anual')" id="tab-anual">📈 Resumen Anual</div>
     <div class="tab" onclick="mostrarVista('historial')" id="tab-historial">📋 Historial</div>
     <div class="tab" onclick="mostrarVista('usuarios')" id="tab-usuarios" style="display:none;">👥 Usuarios</div>
+    <div class="tab" onclick="mostrarVista('tienda')" id="tab-tienda" style="display:none;">🛍 Tienda</div>
   </div>
 </div>
 <div class="main" id="main-content"></div>
@@ -392,7 +427,21 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
         <button class="est-btn" id="btn-contabilizada" onclick="selEstado('contabilizada')">✅ Contabilizada (Rubén)</button>
       </div>
     </div>
-    <div class="mbtns">
+    <div class="chk-row" id="chk-art-row" onclick="toggleArtCompra()" style="margin-top:4px;">
+      <input type="checkbox" id="chk-art" onclick="event.stopPropagation()">
+      <label for="chk-art" style="color:var(--ambar-dark);">🛍 Compra de artículo</label>
+    </div>
+    <div id="art-compra-box" class="art-compra-box" style="display:none;">
+      <select id="art-sel" class="art-compra-sel" onchange="onArtSelChange()" style="width:100%;margin-bottom:0;">
+        <option value="">-- Seleccionar artículo --</option>
+      </select>
+      <div class="art-compra-grid">
+        <div><label class="art-lbl">Cant.</label><input type="number" id="art-qty" class="art-compra-inp" value="1" min="1" oninput="onArtSelChange()"></div>
+        <div><label class="art-lbl">PVP €/u</label><input type="number" id="art-pvp" class="art-compra-inp" min="0" step="0.5" oninput="onArtSelChange()"></div>
+      </div>
+      <div class="art-benef-info" id="art-benef-info"></div>
+    </div>
+    <div class="mbtns" style="margin-top:10px;">
       <button class="mbtn-ok" onclick="guardarPagos()">✓ Guardar</button>
       <button class="mbtn-cancel" onclick="cerrarModal('pago')">Cancelar</button>
     </div>
@@ -528,6 +577,71 @@ var MESES=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Se
 var MESES_CORTO=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 var UCOLORS=['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16'];
 var TODOS_PISOS=[0,1,2,3,4,5,6,7,8,9];
+// ========== CATÁLOGO TIENDA SHH ==========
+var ARTICULOS=[
+  // --- LUBRICANTES ---
+  {id:'L01',cat:'Lubricante',nombre:'AQUA Original 100ml',pvpDef:12},
+  {id:'L02',cat:'Lubricante',nombre:'AQUA Original 200ml',pvpDef:13},
+  {id:'L03',cat:'Lubricante',nombre:'AQUA Original 1000ml',pvpDef:23},
+  {id:'L04',cat:'Lubricante',nombre:'AQUA Sabores 50ml',pvpDef:12},
+  {id:'L05',cat:'Lubricante',nombre:'AQUAGLIDE Original 200ml',pvpDef:17},
+  {id:'L06',cat:'Lubricante',nombre:'AQUAGLIDE Original Dosificador 250ml',pvpDef:18},
+  {id:'L07',cat:'Lubricante',nombre:'AQUAGLIDE Original 1000ml',pvpDef:35},
+  {id:'L08',cat:'Lubricante',nombre:'AQUAGLIDE Frambuesa 100ml',pvpDef:17},
+  {id:'L09',cat:'Lubricante',nombre:'BIO AQUA 200ml',pvpDef:15},
+  {id:'L10',cat:'Lubricante',nombre:'BIOGLIDE Fresa 100ml',pvpDef:18},
+  {id:'L11',cat:'Lubricante',nombre:'DUREX Sabores Cereza 50ml',pvpDef:15},
+  {id:'L12',cat:'Lubricante',nombre:'DUREX Sabores Fresa 50ml',pvpDef:15},
+  {id:'L13',cat:'Lubricante',nombre:'EROS AQUA 100ml',pvpDef:12},
+  {id:'L14',cat:'Lubricante',nombre:'EROS AQUA 200ml',pvpDef:14},
+  {id:'L15',cat:'Lubricante',nombre:'BLACK HOLE RELAX Tubo 250ml',pvpDef:15},
+  {id:'L16',cat:'Lubricante',nombre:'BLACK HOLE RELAX Spray 30ml',pvpDef:15},
+  {id:'L17',cat:'Lubricante',nombre:'EROS SILICONA ANAL 100ml',pvpDef:16},
+  {id:'L18',cat:'Lubricante',nombre:'WATERFEEL ANAL 150ml',pvpDef:12},
+  // --- PRESERVATIVOS ---
+  {id:'P01',cat:'Preservativo',nombre:'Unilatex Natural Classic 144u',pvpDef:20},
+  {id:'P02',cat:'Preservativo',nombre:'Unilatex Fresa 144u',pvpDef:20},
+  {id:'P03',cat:'Preservativo',nombre:'Confortex Forte 144u',pvpDef:25},
+  {id:'P04',cat:'Preservativo',nombre:'Confortex Fresa 144u',pvpDef:23},
+  {id:'P05',cat:'Preservativo',nombre:'Confortex Nature 144u',pvpDef:21},
+  {id:'P06',cat:'Preservativo',nombre:'Pasante Natural Caja 144u',pvpDef:28},
+  {id:'P07',cat:'Preservativo',nombre:'Pasante Natural Bolsa 144u',pvpDef:26},
+  {id:'P08',cat:'Preservativo',nombre:'Pasante Natural Eco Pack 288u',pvpDef:45},
+  {id:'P09',cat:'Preservativo',nombre:'Pasante King Size Caja 144u',pvpDef:30},
+  {id:'P10',cat:'Preservativo',nombre:'Pasante King Size Bolsa 144u',pvpDef:28},
+  {id:'P11',cat:'Preservativo',nombre:'Pasante Extra Gruesos Caja 144u',pvpDef:28},
+  {id:'P12',cat:'Preservativo',nombre:'Pasante Extra Gruesos Bolsa 144u',pvpDef:26},
+  {id:'P13',cat:'Preservativo',nombre:'Pasante Ribs & Dots Caja 144u',pvpDef:30},
+  {id:'P14',cat:'Preservativo',nombre:'Pasante Ribs & Dots Bolsa 144u',pvpDef:26},
+  {id:'P15',cat:'Preservativo',nombre:'Pasante Sabores Caja 144u',pvpDef:28},
+  {id:'P16',cat:'Preservativo',nombre:'Pasante Sabores Bolsa 144u',pvpDef:26},
+  {id:'P17',cat:'Preservativo',nombre:'Pasante Regular Caja 144u',pvpDef:28},
+  {id:'P18',cat:'Preservativo',nombre:'Pasante Regular Bolsa 144u',pvpDef:26},
+  {id:'P19',cat:'Preservativo',nombre:'Pasante Sensitive Feel Caja 144u',pvpDef:28},
+  {id:'P20',cat:'Preservativo',nombre:'Pasante Sensitive Feel Bolsa 144u',pvpDef:26},
+  {id:'P21',cat:'Preservativo',nombre:'Pasante Probe Covers 144u',pvpDef:26},
+  {id:'P22',cat:'Preservativo',nombre:'Durex Natural 144u',pvpDef:45},
+  {id:'P23',cat:'Preservativo',nombre:'Durex Natural XL 144u',pvpDef:45},
+  {id:'P24',cat:'Preservativo',nombre:'Durex Sabores 144u',pvpDef:50},
+  {id:'P25',cat:'Preservativo',nombre:'Durex Sensitivo Suave 144u',pvpDef:50},
+  {id:'P26',cat:'Preservativo',nombre:'Durex Invisible 12u',pvpDef:20},
+  {id:'P27',cat:'Preservativo',nombre:'Durex Invisible Extra Lubricado 12u',pvpDef:20},
+  {id:'P28',cat:'Preservativo',nombre:'Durex Real Feel Sin Latex 12u',pvpDef:21},
+  {id:'P29',cat:'Preservativo',nombre:'Durex Sensitivo Super Fino 12u',pvpDef:20},
+  {id:'P30',cat:'Preservativo',nombre:'Control Nature 144u',pvpDef:40},
+  {id:'P31',cat:'Preservativo',nombre:'Control Finissimo Senso 144u',pvpDef:40},
+  {id:'P32',cat:'Preservativo',nombre:'Control Nature Forte 144u',pvpDef:40},
+  {id:'P33',cat:'Preservativo',nombre:'Control Strawberry 144u',pvpDef:40},
+  {id:'P34',cat:'Preservativo',nombre:'Control Fussion 144u',pvpDef:40},
+  {id:'P35',cat:'Preservativo',nombre:'Control Sensual Xtra Dots 12u',pvpDef:16},
+  {id:'P36',cat:'Preservativo',nombre:'Control Ultrafeel 10u',pvpDef:17},
+  {id:'P37',cat:'Preservativo',nombre:'Mister Size XS T47 36u',pvpDef:22},
+  {id:'P38',cat:'Preservativo',nombre:'Mister Size S T49 36u',pvpDef:22},
+  {id:'P39',cat:'Preservativo',nombre:'Mister Size M T53 36u',pvpDef:22},
+  {id:'P40',cat:'Preservativo',nombre:'Mister Size L T57 36u',pvpDef:22},
+  {id:'P41',cat:'Preservativo',nombre:'Mister Size XL T60 36u',pvpDef:22},
+  {id:'P42',cat:'Preservativo',nombre:'Mister Size XXL T64 36u',pvpDef:22}
+];
 
 // STORAGE
 var _mem={};
@@ -542,6 +656,8 @@ var semsAct=sg('crm4_sems',{});
 var gastosExtra=sg('crm4_gastos',{});
 var precios=sg('crm4_precios',{});
 var aniosExcluidos=sg('crm4_anios_excl',[2025]);
+var stockData=sg('crm4_stock',{});
+var ventasList=sg('crm4_ventas',[]);
 
 // USUARIOS
 var _defUsers=[{id:'admin',nombre:'Rubén',pin:'1111',rol:'admin',pisos:TODOS_PISOS}];
@@ -678,6 +794,8 @@ function arrancarApp(){
   if(tH) tH.style.display=esAdmin()?'':'none';
   if(tD) tD.style.display=esAdmin()?'':'none';
   if(tU) tU.style.display=esAdmin()?'':'none';
+  var tT=document.getElementById('tab-tienda');
+  if(tT) tT.style.display=esAdmin()?'':'none';
   // Vista inicial
   if(esTrab()&&Array.isArray(usuarioActual.pisos)&&usuarioActual.pisos.length>0){
     mostrarVista('piso-'+usuarioActual.pisos[0]);
@@ -767,14 +885,15 @@ function calcAnualMesMiParte(a,m){
     if(activo) gastosFijos+=p.gastos*factor;
     gastosEx+=c.gastosEx*factor;
   });
-  return{contab:Math.round(contab*100)/100,recog:Math.round(recog*100)/100,gastosFijos:Math.round(gastosFijos*100)/100,gastosEx:Math.round(gastosEx*100)/100,neto:Math.round((contab-gastosFijos-gastosEx)*100)/100};
+  var ventas=calcVentasBenefMes(a,m);
+  return{contab:Math.round(contab*100)/100,recog:Math.round(recog*100)/100,gastosFijos:Math.round(gastosFijos*100)/100,gastosEx:Math.round(gastosEx*100)/100,ventas:Math.round(ventas*100)/100,neto:Math.round((contab-gastosFijos-gastosEx+ventas)*100)/100};
 }
 function calcAcumuladoAnio(anio){
   var ahora=new Date(),curAnio=ahora.getFullYear(),curMes=ahora.getMonth();
   var limite=anio<curAnio?11:anio===curAnio?curMes-1:-1;
-  var contab=0,recog=0,gastosFijos=0,gastosEx=0;
-  for(var m=0;m<=limite;m++){var d=calcAnualMesMiParte(anio,m);contab+=d.contab;recog+=d.recog;gastosFijos+=d.gastosFijos;gastosEx+=d.gastosEx;}
-  return{contab:Math.round(contab*100)/100,recog:Math.round(recog*100)/100,gastosFijos:Math.round(gastosFijos*100)/100,gastosEx:Math.round(gastosEx*100)/100,neto:Math.round((contab-gastosFijos-gastosEx)*100)/100};
+  var contab=0,recog=0,gastosFijos=0,gastosEx=0,ventasAcum=0;
+  for(var m=0;m<=limite;m++){var d=calcAnualMesMiParte(anio,m);contab+=d.contab;recog+=d.recog;gastosFijos+=d.gastosFijos;gastosEx+=d.gastosEx;ventasAcum+=d.ventas||0;}
+  return{contab:Math.round(contab*100)/100,recog:Math.round(recog*100)/100,gastosFijos:Math.round(gastosFijos*100)/100,gastosEx:Math.round(gastosEx*100)/100,ventas:Math.round(ventasAcum*100)/100,neto:Math.round((contab-gastosFijos-gastosEx+ventasAcum)*100)/100};
 }
 function isAnioExcluido(anio){return aniosExcluidos.indexOf(anio)>=0;}
 function toggleAnioExcluido(anio){
@@ -791,6 +910,89 @@ function getAniosConDatos(){
   return Object.keys(set).map(function(a){return parseInt(a);}).sort();
 }
 
+// ========== TIENDA HELPERS ==========
+function getArt(artId){for(var i=0;i<ARTICULOS.length;i++){if(ARTICULOS[i].id===artId)return ARTICULOS[i];}return null;}
+function getStockEntry(artId){
+  var a=getArt(artId);
+  var def={pfc:0,pvp:(a?a.pvpDef:0),qty:0};
+  var s=stockData[artId];
+  if(!s) return def;
+  return{pfc:s.pfc||0,pvp:(s.pvp!==undefined?s.pvp:(a?a.pvpDef:0)),qty:s.qty||0};
+}
+function saveStockEntry(artId,entry){
+  if(!stockData) stockData={};
+  stockData[artId]=entry;
+  sv('crm4_stock',stockData);
+}
+function calcVentasBenefMes(a,m){
+  var benef=0;
+  var arr=Array.isArray(ventasList)?ventasList:[];
+  for(var i=0;i<arr.length;i++){
+    var v=arr[i];
+    if(v.anio===a&&v.mes===m){
+      var pvp=parseFloat(v.pvp)||0;
+      var pfc=parseFloat(v.pfc)||0;
+      var qty=parseInt(v.qty)||1;
+      benef+=Math.round((pvp-pfc)*qty*100)/100;
+    }
+  }
+  return Math.round(benef*100)/100;
+}
+function calcVentasIngresosMes(a,m){
+  var ing=0;
+  var arr=Array.isArray(ventasList)?ventasList:[];
+  for(var i=0;i<arr.length;i++){
+    var v=arr[i];
+    if(v.anio===a&&v.mes===m){ing+=Math.round((parseFloat(v.pvp)||0)*(parseInt(v.qty)||1)*100)/100;}
+  }
+  return Math.round(ing*100)/100;
+}
+function buildArtOptions(){
+  var opts='<option value="">-- Seleccionar artículo --</option>';
+  var cats=['Lubricante','Preservativo'];
+  cats.forEach(function(cat){
+    opts+='<optgroup label="'+cat+'s">';
+    ARTICULOS.forEach(function(a){
+      if(a.cat!==cat) return;
+      var se=getStockEntry(a.id);
+      opts+='<option value="'+a.id+'">'+a.nombre+' (stock: '+se.qty+')</option>';
+    });
+    opts+='</optgroup>';
+  });
+  return opts;
+}
+// ========== TIENDA MODAL PAGOS ==========
+function toggleArtCompra(){
+  var chk=document.getElementById('chk-art');
+  if(!chk) return;
+  chk.checked=!chk.checked;
+  var box=document.getElementById('art-compra-box');
+  if(box) box.style.display=chk.checked?'block':'none';
+  if(chk.checked){
+    var sel=document.getElementById('art-sel');
+    if(sel) sel.innerHTML=buildArtOptions();
+  }
+  onArtSelChange();
+}
+function onArtSelChange(){
+  var sel=document.getElementById('art-sel');
+  var qtyEl=document.getElementById('art-qty');
+  var pvpEl=document.getElementById('art-pvp');
+  var bi=document.getElementById('art-benef-info');
+  if(!sel||!bi) return;
+  var artId=sel.value;
+  if(!artId){bi.textContent='';return;}
+  var se=getStockEntry(artId);
+  if(pvpEl&&(pvpEl.value===''||pvpEl.dataset.lastArt!==artId)){pvpEl.value=se.pvp;pvpEl.dataset.lastArt=artId;}
+  var pvp=parseFloat(pvpEl?pvpEl.value:0)||0;
+  var pfc=se.pfc||0;
+  var qty=parseInt(qtyEl?qtyEl.value:1)||1;
+  var benef=Math.round((pvp-pfc)*qty*100)/100;
+  var a=getArt(artId);
+  bi.innerHTML='<span style="color:var(--suave)">Stock: '+se.qty+'u &nbsp;|&nbsp; PFC: €'+pfc+'</span>'
+    +' &nbsp;<strong style="color:var(--verde-dark)">Beneficio: €'+benef+'</strong>';
+}
+
 // MODAL PAGOS
 function abrirModalPago(pid,hIdx,sIdx){
   var piso=PISOS[pid],nombre=getNombre(pid,hIdx);
@@ -805,6 +1007,19 @@ function abrirModalPago(pid,hIdx,sIdx){
   if(btnC) btnC.style.display=esTrab()?'none':'';
   actualizarEstadoBtns();
   renderParciales(precio);
+  // reset article section
+  var chkArt=document.getElementById('chk-art');
+  var artBox=document.getElementById('art-compra-box');
+  if(chkArt){chkArt.checked=false;}
+  if(artBox){artBox.style.display='none';}
+  var artSel=document.getElementById('art-sel');
+  if(artSel){artSel.innerHTML=buildArtOptions();}
+  var artQty=document.getElementById('art-qty');
+  if(artQty){artQty.value=1;}
+  var artPvp=document.getElementById('art-pvp');
+  if(artPvp){artPvp.value='';artPvp.dataset.lastArt='';}
+  var artBi=document.getElementById('art-benef-info');
+  if(artBi){artBi.innerHTML='';}
   document.getElementById('modal-pago-wrap').classList.add('open');
 }
 function selEstado(est){if(esTrab()&&est==='contabilizada') return;estadoEdit=est;actualizarEstadoBtns();}
@@ -847,7 +1062,32 @@ function guardarPagos(){
   var estado=esTrab()?'recogida':estadoEdit;
   var k=pk(anioActual,mesActual,pid,hIdx,sIdx);
   if(parciales.length===0&&!done){delete pagos[k];}else{pagos[k]={parciales:parciales,done:done,estado:estado};}
-  sv('crm4_pagos',pagos);cerrarModal('pago');renderAll();
+  sv('crm4_pagos',pagos);
+  // guardar venta de artículo si procede
+  var chkArt=document.getElementById('chk-art');
+  if(chkArt&&chkArt.checked){
+    var artSel=document.getElementById('art-sel');
+    var artId=artSel?artSel.value:'';
+    if(artId){
+      var artQtyEl=document.getElementById('art-qty');
+      var artPvpEl=document.getElementById('art-pvp');
+      var qty=parseInt(artQtyEl?artQtyEl.value:1)||1;
+      var pvp=parseFloat(artPvpEl?artPvpEl.value:0)||0;
+      var se=getStockEntry(artId);
+      var pfc=se.pfc||0;
+      var now=new Date();
+      var vid='v_'+now.getTime()+'_'+Math.floor(Math.random()*1000);
+      if(!Array.isArray(ventasList)) ventasList=[];
+      ventasList.push({id:vid,anio:anioActual,mes:mesActual,pid:pid,hIdx:hIdx,
+        artId:artId,qty:qty,pvp:pvp,pfc:pfc,
+        nombre:getNombre(pid,hIdx),fecha:now.toISOString().slice(0,10)});
+      sv('crm4_ventas',ventasList);
+      // decrementar stock
+      var newQty=Math.max(0,(se.qty||0)-qty);
+      saveStockEntry(artId,{pfc:pfc,pvp:pvp,qty:newQty});
+    }
+  }
+  cerrarModal('pago');renderAll();
 }
 function borrarCelda(pid,hIdx,sIdx){delete pagos[pk(anioActual,mesActual,pid,hIdx,sIdx)];sv('crm4_pagos',pagos);renderAll();}
 
@@ -1325,13 +1565,14 @@ function renderAnual(){
   var thMeses='<th class="mes-head row-lbl">Concepto</th>';
   for(var m=0;m<12;m++){var esMesHoy=m===mesHoy&&anioAnual===anioHoy;thMeses+='<th class="mes-head'+(esMesHoy?' actual':'')+'">'+MESES_CORTO[m]+(esMesHoy?' ★':'')+'</th>';}
   // thTot se añade después de calcular limiteM
-  var rows={contab:new Array(12).fill(0),recog:new Array(12).fill(0),gastosFijos:new Array(12).fill(0),gastosEx:new Array(12).fill(0),neto:new Array(12).fill(0)};
+  var rows={contab:new Array(12).fill(0),recog:new Array(12).fill(0),gastosFijos:new Array(12).fill(0),gastosEx:new Array(12).fill(0),ventas:new Array(12).fill(0),neto:new Array(12).fill(0)};
   for(var m2=0;m2<12;m2++){
     var d=calcAnualMesMiParte(anioAnual,m2);
     rows.contab[m2]=Math.round(d.contab*100)/100;
     rows.recog[m2]=Math.round(d.recog*100)/100;
     rows.gastosFijos[m2]=Math.round(d.gastosFijos*100)/100;
     rows.gastosEx[m2]=Math.round(d.gastosEx*100)/100;
+    rows.ventas[m2]=Math.round((d.ventas||0)*100)/100;
     rows.neto[m2]=Math.round(d.neto*100)/100;
   }
   // Límite: solo meses COMPLETADOS (no el mes actual en curso, no futuros)
@@ -1340,9 +1581,9 @@ function renderAnual(){
   function tot(arr){return Math.round(arr.slice(0,limiteM+1).reduce(function(a,b){return a+b;},0)*100)/100;}
   function fmtV(v){return v===0?'—':'€'+Math.abs(v).toLocaleString();}
   function tdM(val,m3,cls){var eM=m3===mesHoy&&anioAnual===anioHoy;return '<td class="'+(eM?'mes-actual':'')+(cls?' '+cls:'')+'">'+fmtV(val)+'</td>';}
-  // TOTAL neto calculado explícitamente como contab - gastosFijos - gastosEx para que cuadre
-  var totC=tot(rows.contab),totGF=tot(rows.gastosFijos),totGE=tot(rows.gastosEx);
-  var netoTot=Math.round((totC-totGF-totGE)*100)/100;
+  // TOTAL neto = contab - gastosFijos - gastosEx + ventas
+  var totC=tot(rows.contab),totGF=tot(rows.gastosFijos),totGE=tot(rows.gastosEx),totV=tot(rows.ventas);
+  var netoTot=Math.round((totC-totGF-totGE+totV)*100)/100;
   thMeses+='<th class="mes-head" style="white-space:nowrap;color:#ff6b6b;">'+lblTotal+'</th>';
   var rC='<tr><td class="row-lbl">✅ Contabilizado</td>'+rows.contab.map(function(v,m3){return tdM(v,m3,'');}).join('')+'<td style="font-weight:700;color:var(--verde-dark)">€'+totC.toLocaleString()+'</td></tr>';
   var rR='<tr><td class="row-lbl">📦 Recogido (pdte.)</td>'+rows.recog.map(function(v,m3){return tdM(v,m3,'');}).join('')+'<td style="font-weight:700;color:var(--ambar-dark)">€'+tot(rows.recog).toLocaleString()+'</td></tr>';
@@ -1355,6 +1596,7 @@ function renderAnual(){
     cell+='<button class="btn-add-gasto" onclick="abrirModalGe('+anioAnual+','+m3+')">+ gasto</button></div>';
     return '<td class="'+(eM?'mes-actual':'')+'" style="min-width:100px;">'+cell+'</td>';
   }).join('')+'<td style="font-weight:700;color:var(--rojo-dark)">€'+totGE.toLocaleString()+'</td></tr>';
+  var rVT='<tr><td class="row-lbl">🛍 Ventas (benef.)</td>'+rows.ventas.map(function(v,m3){var eM=m3===mesHoy&&anioAnual===anioHoy;return '<td class="'+(eM?'mes-actual':'')+'">'+(v===0?'—':'<span style="color:var(--verde-dark);font-weight:700">+€'+v+'</span>')+'</td>';}).join('')+'<td style="font-weight:700;color:var(--verde-dark)">'+(totV===0?'—':'+€'+totV.toLocaleString())+'</td></tr>';
   var rN='<tr class="neto-row"><td class="row-lbl" style="font-weight:800;">💰 Beneficio neto</td>'+rows.neto.map(function(v,m3){var eM=m3===mesHoy&&anioAnual===anioHoy;return '<td class="'+(eM?'mes-actual ':'')+(v>=0?'pos':'neg')+'" style="font-weight:800;">'+(v===0?'—':(v>=0?'+':'')+'€'+v.toLocaleString())+'</td>';}).join('')+'<td class="'+(netoTot>=0?'pos':'neg')+'" style="font-weight:800;">'+(netoTot>=0?'+':'')+'€'+netoTot.toLocaleString()+'</td></tr>';
   // TABLA MULTIANUAL
   var aniosList=getAniosConDatos();
@@ -1398,11 +1640,115 @@ function renderAnual(){
   el.innerHTML='<div class="anual-hdr"><h2>📈 Resumen contable</h2><div class="anio-nav"><button onclick="cambiarAnio(-1)">◀</button><div class="anio-lbl">'+anioAnual+'</div><button onclick="cambiarAnio(1)">▶</button></div></div>'
     +'<div style="font-size:.72rem;color:var(--suave);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;padding-left:2px;">📅 Desglose mensual — '+anioAnual+'</div>'
     +'<div class="anual-leyenda"><div class="ley-item"><div class="ley-dot" style="background:var(--verde)"></div> Contabilizado</div><div class="ley-item"><div class="ley-dot" style="background:var(--ambar)"></div> Recogido</div><div class="ley-item"><div class="ley-dot" style="background:var(--rojo)"></div> Gastos</div></div>'
-    +'<div class="anual-wrap"><table class="anual-table"><thead><tr>'+thMeses+'</tr></thead><tbody>'+rC+rR+rGF+rGE+rN+'</tbody></table></div>'
+    +'<div class="anual-wrap"><table class="anual-table"><thead><tr>'+thMeses+'</tr></thead><tbody>'+rC+rR+rGF+rGE+rVT+rN+'</tbody></table></div>'
     +'<div style="font-size:.75rem;color:var(--suave);padding:8px 12px;background:var(--gris-bg);border-radius:8px;margin-bottom:4px;">💡 Beneficio neto = contabilizado − gastos fijos − gastos extra. Clic en "+ gasto" para añadir gastos extra.</div>'
     +multiTable;
 }
 
+// ========== TIENDA ==========
+function renderTienda(){
+  var el=document.getElementById('view-tienda');if(!el) return;
+  // Resumen del mes actual
+  var totBenef=calcVentasBenefMes(anioActual,mesActual);
+  var totIng=calcVentasIngresosMes(anioActual,mesActual);
+  var resumenHtml='<div class="tienda-resumen">'
+    +'<div class="tienda-stat"><div class="ts-lbl">Ingresos mes</div><div class="ts-val" style="color:var(--verde-dark)">€'+totIng.toLocaleString()+'</div></div>'
+    +'<div class="tienda-stat"><div class="ts-lbl">Beneficio mes</div><div class="ts-val" style="color:var(--verde-dark)">+€'+totBenef.toLocaleString()+'</div></div>'
+    +'<div class="tienda-stat"><div class="ts-lbl">Ventas mes</div><div class="ts-val">'+(Array.isArray(ventasList)?ventasList.filter(function(v){return v.anio===anioActual&&v.mes===mesActual;}).length:0)+'</div></div>'
+    +'</div>';
+  // Cabecera tabla artículos
+  var artHdrHtml='<div class="art-tbl-hdr"><span>Artículo</span><span style="text-align:center">Stock</span><span style="text-align:center">PFC €</span><span style="text-align:center">PVP €</span><span style="text-align:right">Benef/u</span></div>';
+  // Artículos por categoría
+  var cats=['Lubricante','Preservativo'];
+  var artHtml='';
+  cats.forEach(function(cat){
+    artHtml+='<div class="tienda-cat-hdr">'+( cat==='Lubricante'?'🧴':'🛡')+'&nbsp;'+cat+'s</div>';
+    artHtml+=artHdrHtml;
+    ARTICULOS.forEach(function(a){
+      if(a.cat!==cat) return;
+      var se=getStockEntry(a.id);
+      var benef=Math.round((se.pvp-se.pfc)*100)/100;
+      var benefColor=benef>0?'color:var(--verde-dark)':benef<0?'color:var(--rojo-dark)':'color:var(--suave)';
+      artHtml+='<div class="art-row">'
+        +'<div class="art-nom">'+a.nombre+'</div>'
+        +'<div class="art-col"><span class="art-lbl">Stock</span><input class="art-inp" type="number" min="0" value="'+se.qty+'" onchange="updateStockField(\''+a.id+'\',\'qty\',this.value)"></div>'
+        +'<div class="art-col"><span class="art-lbl">PFC €</span><input class="art-inp" type="number" min="0" step="0.5" value="'+se.pfc+'" onchange="updateStockField(\''+a.id+'\',\'pfc\',this.value)"></div>'
+        +'<div class="art-col"><span class="art-lbl">PVP €</span><input class="art-inp" type="number" min="0" step="0.5" value="'+se.pvp+'" onchange="updateStockField(\''+a.id+'\',\'pvp\',this.value)"></div>'
+        +'<div class="art-benef" style="'+benefColor+'">'+(benef===0?'—':(benef>0?'+':'')+'€'+benef)+'</div>'
+        +'</div>';
+    });
+  });
+  // Ventas recientes (historial)
+  var ventasFiltradas=(Array.isArray(ventasList)?ventasList:[]).slice().reverse();
+  var ventasHtml='<div class="tienda-ventas-section">'
+    +'<div style="font-size:.82rem;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">📋 Historial de ventas</div>'
+    +'<div class="tienda-ventas-filters">'
+    +'<select id="tv-mes" onchange="renderTienda()" style="padding:6px 8px;border:1.5px solid #2a2a2a;border-radius:7px;font-size:14px;background:#111;color:#f0f0f0;">'
+    +'<option value="">Todos los meses</option>';
+  MESES.forEach(function(m,idx){ventasHtml+='<option value="'+idx+'">'+m+'</option>';});
+  ventasHtml+='</select>'
+    +'<select id="tv-cat" onchange="renderTienda()" style="padding:6px 8px;border:1.5px solid #2a2a2a;border-radius:7px;font-size:14px;background:#111;color:#f0f0f0;">'
+    +'<option value="">Todas las categorías</option>'
+    +'<option value="Lubricante">Lubricantes</option>'
+    +'<option value="Preservativo">Preservativos</option>'
+    +'</select>'
+    +'</div>';
+  var tvMesEl=document.getElementById('tv-mes');
+  var tvCatEl=document.getElementById('tv-cat');
+  var fMes=tvMesEl?tvMesEl.value:'';
+  var fCat=tvCatEl?tvCatEl.value:'';
+  if(ventasFiltradas.length===0){
+    ventasHtml+='<div style="text-align:center;padding:20px;color:var(--suave);font-size:.85rem;">Sin ventas registradas todavía.</div>';
+  } else {
+    ventasFiltradas.forEach(function(v){
+      if(fMes!==''&&parseInt(fMes)!==v.mes) return;
+      var a=getArt(v.artId);
+      if(fCat&&a&&a.cat!==fCat) return;
+      var artNom=a?a.nombre:v.artId;
+      var pvp=parseFloat(v.pvp)||0;
+      var pfc=parseFloat(v.pfc)||0;
+      var qty=parseInt(v.qty)||1;
+      var benef=Math.round((pvp-pfc)*qty*100)/100;
+      var piso=PISOS[v.pid];
+      ventasHtml+='<div class="venta-item">'
+        +'<div class="vi-info"><div class="vi-nom">'+v.nombre+' &middot; '+(piso?piso.nombre:'')+'</div>'
+        +'<div class="vi-sub">'+MESES[v.mes]+' '+v.anio+' &middot; '+v.fecha+' &middot; '+artNom+' x'+qty+'</div></div>'
+        +'<div class="vi-right"><div class="vi-pvp">€'+Math.round(pvp*qty*100)/100+'</div><div class="vi-pfc">Benef: +€'+benef+'</div></div>'
+        +'<button class="btn-del-v" onclick="borrarVenta(\''+v.id+'\')">✕</button>'
+        +'</div>';
+    });
+  }
+  ventasHtml+='</div>';
+  el.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">'
+    +'<h2 style="font-size:1.05rem;font-weight:800;">🛍 Tienda SHH — Control de stock</h2>'
+    +'<span style="font-size:.75rem;color:var(--suave);">Edita precios y stock directamente</span>'
+    +'</div>'
+    +resumenHtml
+    +artHtml
+    +ventasHtml;
+}
+function updateStockField(artId,field,val){
+  var se=getStockEntry(artId);
+  se[field]=parseFloat(val)||0;
+  saveStockEntry(artId,se);
+}
+function borrarVenta(vid){
+  if(!confirm('¿Eliminar esta venta?')) return;
+  if(!Array.isArray(ventasList)) return;
+  for(var i=0;i<ventasList.length;i++){
+    if(ventasList[i].id===vid){
+      // restaurar stock
+      var v=ventasList[i];
+      var se=getStockEntry(v.artId);
+      se.qty=(se.qty||0)+(parseInt(v.qty)||1);
+      saveStockEntry(v.artId,se);
+      ventasList.splice(i,1);
+      sv('crm4_ventas',ventasList);
+      break;
+    }
+  }
+  renderTienda();
+}
 // HISTORIAL
 function renderHistorial(){
   var fp=document.getElementById('filtro-piso');var fe=document.getElementById('filtro-estado');
@@ -1495,6 +1841,7 @@ function mostrarVista(nombre){
   if(nombre==='historial') renderHistorial();
   if(nombre==='anual'){anioAnual=anioActual;renderAnual();}
   if(nombre==='usuarios') renderUsuarios();
+  if(nombre==='tienda') renderTienda();
 }
 
 // INIT
@@ -1527,6 +1874,7 @@ function init(){
     +'<table class="hist-table"><thead><tr><th>Mes/Sem.</th><th>Piso</th><th>Inquilina</th><th>Total</th><th>Estado</th><th>Notas</th></tr></thead><tbody id="hist-tbody"></tbody></table>';
   main.appendChild(dvH);
   var dvU=document.createElement('div');dvU.className='view';dvU.id='view-usuarios';main.appendChild(dvU);
+  var dvT=document.createElement('div');dvT.className='view';dvT.id='view-tienda';main.appendChild(dvT);
   if(checkSesion()){arrancarApp();}else{mostrarLogin();}
 }
 
