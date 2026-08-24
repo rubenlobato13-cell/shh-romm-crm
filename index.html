@@ -1525,8 +1525,8 @@ function renderPisoView(pid){
 
   if(isMob){
     // ---- VISTA MÓVIL: tarjetas por semana ----
-    var semMob=mobileSemActiva[pid]!==undefined?mobileSemActiva[pid]:0;
-    // Si la semana guardada ya no está activa, ir a la primera activa
+    var semMob=mobileSemActiva[pid]!==undefined?mobileSemActiva[pid]:calcSemActual();
+    // Si la semana calculada/guardada no está activa, ir a la primera activa
     if(!isSemActiva(anioActual,mesActual,pid,semMob)){
       for(var sa=0;sa<5;sa++){if(isSemActiva(anioActual,mesActual,pid,sa)){semMob=sa;break;}}
     }
@@ -1647,6 +1647,7 @@ function renderPisoView(pid){
     +resumenRow;
 }
 
+function calcSemActual(){return Math.min(4,Math.floor((new Date().getDate()-1)/7));}
 function setMobileSem(pid,s){mobileSemActiva[pid]=s;renderPisoView(pid);}
 function marcarPisoRecogido(pid){
   var piso=PISOS[pid];
@@ -2171,7 +2172,7 @@ window.onload=function(){
 (function(){try{
 var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});
 _fbDb=firebase.database(app);
-_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
+_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
 }catch(e){console.log('Firebase error:',e);}})();
 </script>
 </body>
