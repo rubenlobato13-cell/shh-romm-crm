@@ -1525,11 +1525,10 @@ function renderPisoView(pid){
 
   if(isMob){
     // ---- VISTA MÓVIL: tarjetas por semana ----
-    var semMob=mobileSemActiva[pid]!==undefined?mobileSemActiva[pid]:calcSemActual();
-    // Si la semana calculada/guardada no está activa, ir a la primera activa
-    if(!isSemActiva(anioActual,mesActual,pid,semMob)){
-      for(var sa=0;sa<5;sa++){if(isSemActiva(anioActual,mesActual,pid,sa)){semMob=sa;break;}}
-    }
+    // Por defecto: última semana activa del piso
+    var semMobDef=0;
+    for(var sd=0;sd<5;sd++){if(isSemActiva(anioActual,mesActual,pid,sd)) semMobDef=sd;}
+    var semMob=mobileSemActiva[pid]!==undefined?mobileSemActiva[pid]:semMobDef;
     // Nav de semanas
     var semNavBtns='';
     for(var sn=0;sn<5;sn++){
