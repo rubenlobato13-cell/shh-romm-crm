@@ -1525,16 +1525,19 @@ function renderPisoView(pid){
 
   if(isMob){
     // ---- VISTA MÓVIL: tarjetas por semana ----
-    // Por defecto: última semana activa del piso
-    var semMobDef=0;
-    for(var sd=0;sd<5;sd++){if(isSemActiva(anioActual,mesActual,pid,sd)) semMobDef=sd;}
-    var semMob=mobileSemActiva[pid]!==undefined?mobileSemActiva[pid]:semMobDef;
-    // Nav de semanas
+    // Por defecto: última semana activa del piso (persistido en mobileSemActiva)
+    if(mobileSemActiva[pid]===undefined){
+      var semMobDef=0;
+      for(var sd=0;sd<5;sd++){if(isSemActiva(anioActual,mesActual,pid,sd)) semMobDef=sd;}
+      mobileSemActiva[pid]=semMobDef;
+    }
+    var semMob=mobileSemActiva[pid];
+    // Nav de semanas — sin botones anidados (HTML inválido)
     var semNavBtns='';
     for(var sn=0;sn<5;sn++){
       if(!isSemActiva(anioActual,mesActual,pid,sn)) continue;
       var esActSem=sn===semMob;
-      semNavBtns+='<button onclick="setMobileSem('+pid+','+sn+')" style="flex:1;background:'+(esActSem?'var(--rojo)':'rgba(204,0,0,.12)')+';color:'+(esActSem?'#fff':'var(--texto)')+';border:none;border-radius:10px;padding:12px 4px;font-weight:700;font-size:.95rem;min-height:46px;cursor:pointer;-webkit-tap-highlight-color:transparent;">Sem '+(sn+1)+(esAdmin()?' <button onclick="event.stopPropagation();toggleSem('+pid+','+sn+')" style="background:none;border:none;color:inherit;font-size:.7rem;cursor:pointer;padding:0 2px;">'+(sn<4?'✓':'○')+'</button>':'')+'</button>';
+      semNavBtns+='<button onclick="setMobileSem('+pid+','+sn+')" style="flex:1;background:'+(esActSem?'var(--rojo)':'rgba(204,0,0,.12)')+';color:'+(esActSem?'#fff':'var(--texto)')+';border:none;border-radius:10px;padding:12px 4px;font-weight:700;font-size:.95rem;min-height:46px;cursor:pointer;-webkit-tap-highlight-color:transparent;">Sem '+(sn+1)+'</button>';
     }
     var semNav='<div style="display:flex;gap:6px;margin-bottom:14px;">'+semNavBtns+'</div>';
     // Tarjetas de habitaciones
