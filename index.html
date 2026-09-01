@@ -42,6 +42,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
 .ucard-rl{font-size:.72rem;margin-top:2px;}
 .rl-admin{color:#ff6b6b;}
 .rl-trab{color:#86efac;}
+.rl-empl{color:#93c5fd;}
 .pin-hdr{text-align:center;margin-bottom:18px;}
 .pin-hdr .pnom{color:#fff;font-size:1.1rem;font-weight:700;}
 .pin-hdr .psub{color:#94a3b8;font-size:.8rem;margin-top:3px;}
@@ -563,6 +564,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
           <input type="radio" name="mu-rol" id="mu-rol-trab" value="trabajadora" checked>
           <span>👤 Socio colaborador</span>
         </label>
+        <label class="rol-opt" id="rolopt-e" onclick="setTimeout(toggleRolUI,10)">
+          <input type="radio" name="mu-rol" id="mu-rol-empl" value="empleado">
+          <span>🔑 Empleado</span>
+        </label>
       </div>
     </div>
     <div id="mu-pisos-sec" class="mf">
@@ -730,12 +735,13 @@ var _uEditId=null;
 
 function svU(){sv('crm4_users',usuarios);}
 function getU(id){for(var i=0;i<usuarios.length;i++){if(usuarios[i].id===id)return usuarios[i];}return null;}
-function getSocioPiso(pid){for(var i=0;i<usuarios.length;i++){var u=usuarios[i];if(u.rol!=='admin'){var _up=Array.isArray(u.pisos)?u.pisos:[];for(var j=0;j<_up.length;j++){if(_up[j]===pid)return u;}}}return null;}
+function getSocioPiso(pid){for(var i=0;i<usuarios.length;i++){var u=usuarios[i];if(u.rol==='trab'||u.rol==='trabajadora'){var _up=Array.isArray(u.pisos)?u.pisos:[];for(var j=0;j<_up.length;j++){if(_up[j]===pid)return u;}}}return null;}
 function esAdmin(){return usuarioActual&&usuarioActual.rol==='admin';}
-function esTrab(){return usuarioActual&&usuarioActual.rol!=='admin';}
+function esTrab(){return usuarioActual&&(usuarioActual.rol==='trab'||usuarioActual.rol==='trabajadora');}
+function esEmpleado(){return usuarioActual&&usuarioActual.rol==='empleado';}
 function tienePiso(pid){
   if(!usuarioActual) return false;
-  if(usuarioActual.rol==='admin') return true;
+  if(usuarioActual.rol==='admin'||usuarioActual.rol==='empleado') return true;
   var _p=Array.isArray(usuarioActual.pisos)?usuarioActual.pisos:[];
   for(var i=0;i<_p.length;i++){if(_p[i]===pid)return true;}
   return false;
@@ -762,7 +768,9 @@ function renderUcards(){
   c.innerHTML=usuarios.filter(function(u){return!u.oculto;}).map(function(u,i){
     var col=UCOLORS[i%UCOLORS.length];
     var ini=u.nombre.charAt(0).toUpperCase();
-    return '<button class="ucard" onclick="selUser(\''+u.id+'\')"><div class="ucard-av" style="background:'+col+'">'+ini+'</div><div><div class="ucard-nm">'+u.nombre+'</div><div class="ucard-rl '+(u.rol==='admin'?'rl-admin':'rl-trab')+'">'+(u.rol==='admin'?'👑 Administrador':'👤 Socio colaborador')+'</div></div></button>';
+    var _rl=u.rol==='admin'?'rl-admin':u.rol==='empleado'?'rl-empl':'rl-trab';
+    var _rlLbl=u.rol==='admin'?'👑 Administrador':u.rol==='empleado'?'🔑 Empleado':'👤 Socio colaborador';
+    return '<button class="ucard" onclick="selUser(\''+u.id+'\')"><div class="ucard-av" style="background:'+col+'">'+ini+'</div><div><div class="ucard-nm">'+u.nombre+'</div><div class="ucard-rl '+_rl+'">'+_rlLbl+'</div></div></button>';
   }).join('');
 }
 function selUser(id){
@@ -805,7 +813,7 @@ function logout(){
 // ARRANCAR APP
 function arrancarApp(){
   var hu=document.getElementById('hdr-usr');
-  if(hu){hu.style.display='flex';document.getElementById('hdr-unom').textContent=usuarioActual.nombre+(usuarioActual.rol==='admin'?' 👑':'');}
+  if(hu){hu.style.display='flex';document.getElementById('hdr-unom').textContent=usuarioActual.nombre+(usuarioActual.rol==='admin'?' 👑':usuarioActual.rol==='empleado'?' 🔑':'');}
   // Tabs visibilidad
   PISOS.forEach(function(p){
     var t=document.getElementById('tab-piso-'+p.id);
@@ -824,6 +832,8 @@ function arrancarApp(){
     mostrarVista('piso-'+usuarioActual.pisos[0]);
   } else if(esTrab()){
     mostrarVista('alertas');
+  } else if(esEmpleado()){
+    mostrarVista('piso-'+PISOS[0].id);
   } else {
     mostrarVista('dashboard');
   }
@@ -1048,11 +1058,11 @@ function abrirModalPago(pid,hIdx,sIdx){
     var oldBiz=isBizum(p.nota||'');
     return{imp:p.imp,metodo:p.metodo||(oldBiz?'bizum':'efectivo'),nota:p.nota||'',fecha:p.fecha||'',titular:p.titular||''};
   });
-  estadoEdit=esTrab()?'recogida':(data.estado||'recogida');
+  estadoEdit=(esTrab()||esEmpleado())?'recogida':(data.estado||'recogida');
   document.getElementById('modal-pago-titulo').textContent=nombre+' · '+piso.nombre+' · Sem.'+(sIdx+1);
   document.getElementById('chk-done').checked=data.done;
   var btnC=document.getElementById('btn-contabilizada');
-  if(btnC) btnC.style.display=esTrab()?'none':'';
+  if(btnC) btnC.style.display=(esTrab()||esEmpleado())?'none':'';
   actualizarEstadoBtns();
   renderParciales(precio);
   // reset article section
@@ -1070,7 +1080,7 @@ function abrirModalPago(pid,hIdx,sIdx){
   if(artBi){artBi.innerHTML='';}
   document.getElementById('modal-pago-wrap').classList.add('open');
 }
-function selEstado(est){if(esTrab()&&est==='contabilizada') return;estadoEdit=est;actualizarEstadoBtns();}
+function selEstado(est){if((esTrab()||esEmpleado())&&est==='contabilizada') return;estadoEdit=est;actualizarEstadoBtns();}
 function actualizarEstadoBtns(){
   document.getElementById('btn-recogida').className='est-btn'+(estadoEdit==='recogida'?' sel-recogida':'');
   document.getElementById('btn-contabilizada').className='est-btn'+(estadoEdit==='contabilizada'?' sel-contabilizada':'');
@@ -1123,7 +1133,7 @@ function guardarPagos(){
   var ctx=modalCtx,pid=ctx.pid,hIdx=ctx.hIdx,sIdx=ctx.sIdx;
   var done=document.getElementById('chk-done').checked;
   var parciales=parcialesToEdit.filter(function(p){return (parseFloat(p.imp)||0)>0;});
-  var estado=esTrab()?'recogida':estadoEdit;
+  var estado=(esTrab()||esEmpleado())?'recogida':estadoEdit;
   var k=pk(anioActual,mesActual,pid,hIdx,sIdx);
   if(parciales.length===0&&!done){delete pagos[k];}else{pagos[k]={parciales:parciales,done:done,estado:estado};}
   sv('crm4_pagos',pagos);
@@ -1306,9 +1316,12 @@ function guardarGastos(){
 // MODAL USUARIO
 function toggleRolUI(){
   var isAdmin=document.getElementById('mu-rol-admin').checked;
-  document.getElementById('mu-pisos-sec').style.display=isAdmin?'none':'';
+  var isEmpl=document.getElementById('mu-rol-empl')&&document.getElementById('mu-rol-empl').checked;
+  var isTrab=!isAdmin&&!isEmpl;
+  document.getElementById('mu-pisos-sec').style.display=(isAdmin||isEmpl)?'none':'';
   document.getElementById('rolopt-a').className='rol-opt'+(isAdmin?' sel-a':'');
-  document.getElementById('rolopt-t').className='rol-opt'+(!isAdmin?' sel-t':'');
+  document.getElementById('rolopt-t').className='rol-opt'+(isTrab?' sel-t':'');
+  var re=document.getElementById('rolopt-e');if(re) re.className='rol-opt'+(isEmpl?' sel-a':'');
 }
 function abrirModalUsuario(uid){
   _uEditId=uid;
@@ -1317,8 +1330,10 @@ function abrirModalUsuario(uid){
   document.getElementById('mu-nombre').value=u?u.nombre:'';
   document.getElementById('mu-pin').value=u?u.pin:'';
   var isAdmin=u?u.rol==='admin':false;
+  var isEmplEdit=u?u.rol==='empleado':false;
   document.getElementById('mu-rol-admin').checked=isAdmin;
-  document.getElementById('mu-rol-trab').checked=!isAdmin;
+  var _eEl=document.getElementById('mu-rol-empl');if(_eEl) _eEl.checked=isEmplEdit;
+  document.getElementById('mu-rol-trab').checked=!isAdmin&&!isEmplEdit;
   var grid=document.getElementById('mu-pisos-grid');
   if(grid){
     grid.innerHTML=PISOS.map(function(p){
@@ -1335,9 +1350,11 @@ function guardarUsuario(){
   var pin=document.getElementById('mu-pin').value.trim();
   if(!nombre){alert('El nombre es obligatorio.');return;}
   if(pin.length<4){alert('El PIN debe tener al menos 4 dígitos.');return;}
-  var rol=document.getElementById('mu-rol-admin').checked?'admin':'trabajadora';
+  var _muAdmin=document.getElementById('mu-rol-admin').checked;
+  var _muEmpl=document.getElementById('mu-rol-empl')&&document.getElementById('mu-rol-empl').checked;
+  var rol=_muAdmin?'admin':_muEmpl?'empleado':'trabajadora';
   var pisos=[];
-  if(rol==='admin'){pisos=TODOS_PISOS.slice();}
+  if(rol==='admin'||rol==='empleado'){pisos=TODOS_PISOS.slice();}
   else{PISOS.forEach(function(p){var chk=document.getElementById('mup-'+p.id);if(chk&&chk.checked)pisos.push(p.id);});}
   if(_uEditId){
     var u=getU(_uEditId);
@@ -1492,9 +1509,11 @@ function renderPisoView(pid){
     +(esTrab()&&getSocioPiso(pid)&&getSocioPiso(pid).id===usuarioActual.id?'<button class="btn-outline" onclick="abrirModalGe('+anioActual+','+mesActual+','+pid+')">📋 Proponer gasto</button>':'')
     +(esAdmin()?'<button class="btn-outline" onclick="limpiarMes('+pid+')">🗑 Limpiar mes</button>':'')
     +'</div>';
-  var hint=esTrab()
-    ?'<div style="margin-bottom:10px;padding:7px 12px;background:var(--ambar-bg);border-radius:8px;font-size:.78rem;color:var(--ambar-dark);">📦 Puedes marcar pagos como <strong>Recogidos</strong>. Rubén confirmará el estado contabilizado.</div>'
-    :'<div style="margin-bottom:10px;padding:7px 12px;background:var(--azul-bg);border-radius:8px;font-size:.78rem;color:var(--azul-dark);">💡 📦 Recogida = socia cobró · ✅ Contabilizada = Rubén recibió · ✎ editar · ✕ borrar</div>';
+  var hint=esAdmin()
+    ?'<div style="margin-bottom:10px;padding:7px 12px;background:var(--azul-bg);border-radius:8px;font-size:.78rem;color:var(--azul-dark);">💡 📦 Recogida = socia cobró · ✅ Contabilizada = Rubén recibió · ✎ editar · ✕ borrar</div>'
+    :esTrab()
+      ?'<div style="margin-bottom:10px;padding:7px 12px;background:var(--ambar-bg);border-radius:8px;font-size:.78rem;color:var(--ambar-dark);">📦 Puedes marcar pagos como <strong>Recogidos</strong>. Rubén confirmará el estado contabilizado.</div>'
+      :'<div style="margin-bottom:10px;padding:7px 12px;background:var(--ambar-bg);border-radius:8px;font-size:.78rem;color:var(--ambar-dark);">🔑 Empleado: puedes ver y marcar pagos como <strong>Recogidos</strong>. Solo Rubén puede contabilizar.</div>';
   var resumenRow='<div class="resumen-row">'
     +'<div class="res-card"><div class="rl">✅ Contabilizado</div><div class="rv" style="color:var(--verde-dark)">€'+c.contab.toLocaleString()+'</div></div>'
     +'<div class="res-card"><div class="rl">📦 Recogido</div><div class="rv" style="color:var(--ambar-dark)">€'+c.recog.toLocaleString()+'</div></div>'
@@ -1524,26 +1543,9 @@ function renderPisoView(pid){
   var isMob=window.innerWidth<=640;
 
   if(isMob){
-    // ---- VISTA MÓVIL: tarjetas por semana ----
-    // Por defecto: semana del calendario, recortada a la última semana activa del piso
-    if(mobileSemActiva[pid]===undefined){
-      var semCal=calcSemActual();
-      var semMax=0;
-      for(var sd=0;sd<5;sd++){if(isSemActiva(anioActual,mesActual,pid,sd)) semMax=sd;}
-      mobileSemActiva[pid]=semCal<=semMax?semCal:semMax;
-    }
-    var semMob=mobileSemActiva[pid];
-    // Nav de semanas — sin botones anidados (HTML inválido)
-    var semNavBtns='';
-    for(var sn=0;sn<5;sn++){
-      if(!isSemActiva(anioActual,mesActual,pid,sn)) continue;
-      var esActSem=sn===semMob;
-      semNavBtns+='<button onclick="setMobileSem('+pid+','+sn+')" style="flex:1;background:'+(esActSem?'var(--rojo)':'rgba(204,0,0,.12)')+';color:'+(esActSem?'#fff':'var(--texto)')+';border:none;border-radius:10px;padding:12px 4px;font-weight:700;font-size:.95rem;min-height:46px;cursor:pointer;-webkit-tap-highlight-color:transparent;">Sem '+(sn+1)+'</button>';
-    }
-    var semNav='<div style="display:flex;gap:6px;margin-bottom:14px;">'+semNavBtns+'</div>';
-    // Tarjetas de habitaciones
+    // ---- VISTA MÓVIL: todas las semanas por habitación (tarjetas apiladas) ----
     var cards='';
-    var totSemMob=0;
+    var totMobTotal=0;
     _habOrden.forEach(function(hIdx){
       var vacia=isVacia(pid,hIdx);
       var nombre=getNombre(pid,hIdx);
@@ -1560,36 +1562,41 @@ function renderPisoView(pid){
           +'</div>';
         return;
       }
-      var data2=getPagoData(anioActual,mesActual,pid,hIdx,semMob);
-      var tot2=getTot(data2);
-      var est2=data2.parciales.length===0&&!data2.done?'pendiente':data2.estado||'recogida';
-      var isParcial2=!data2.done&&tot2>0&&tot2<habP;
-      var pct2=habP>0?Math.min(100,Math.round(tot2/habP*100)):0;
-      var notas2=data2.parciales.filter(function(p){return p.imp;}).map(function(p){var eB=isPBizum(p);return (eB?'💳':'💵')+'€'+p.imp+(eB&&p.titular?' ('+p.titular+')':'')+(eB&&p.fecha?' '+p.fecha:'');}).join(' + ');
-      var bizTotal2=data2.parciales.reduce(function(t,p){return t+(isPBizum(p)?parseFloat(p.imp)||0:0);},0);
-      var lbl2=est2==='pendiente'?'✗ Sin cobrar — €'+habP:est2==='contabilizada'?'✅ '+(tot2>0?'€'+tot2:'€'+habP):est2==='recogida'&&bizTotal2>0?(bizTotal2===tot2?'💳 Cobrado €'+tot2:'💳€'+bizTotal2+' + 📦€'+(tot2-bizTotal2)):'📦 Recogido €'+(tot2>0?tot2:habP);
-      if(est2!=='pendiente') totSemMob+=tot2>0?tot2:habP;
-      cards+='<div style="background:#111;border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--borde);">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">'
+      // Filas por semana
+      var semFilas='';
+      for(var smr=0;smr<5;smr++){
+        if(!isSemActiva(anioActual,mesActual,pid,smr)) continue;
+        var dataS=getPagoData(anioActual,mesActual,pid,hIdx,smr);
+        var totS=getTot(dataS);
+        var estS=dataS.parciales.length===0&&!dataS.done?'pendiente':dataS.estado||'recogida';
+        var bizS=dataS.parciales.reduce(function(t,p){return t+(isPBizum(p)?parseFloat(p.imp)||0:0);},0);
+        var lblS=estS==='pendiente'?'✗ Sin cobrar':estS==='contabilizada'?'✅ €'+(totS>0?totS:habP):estS==='recogida'&&bizS>0?(bizS===totS?'💳 €'+totS:'💳€'+bizS+'+📦€'+(totS-bizS)):'📦 €'+(totS>0?totS:habP);
+        if(estS!=='pendiente') totMobTotal+=totS>0?totS:habP;
+        var colS=estS==='pendiente'?'rgba(239,68,68,.07)':estS==='contabilizada'?'rgba(34,197,94,.07)':'rgba(245,158,11,.07)';
+        var bordS=estS==='pendiente'?'rgba(239,68,68,.22)':estS==='contabilizada'?'rgba(34,197,94,.22)':'rgba(245,158,11,.22)';
+        semFilas+='<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;padding:8px 10px;background:'+colS+';border:1px solid '+bordS+';border-radius:9px;">'
+          +'<span style="font-size:.73rem;font-weight:800;color:var(--suave);min-width:36px;flex-shrink:0;text-align:center;">S'+(smr+1)+'</span>'
+          +'<button class="pago-btn '+estS+'" onclick="abrirModalPago('+pid+','+hIdx+','+smr+')" style="flex:1;min-height:38px;font-size:.87rem;font-weight:700;text-align:left;padding:0 10px;border-radius:7px;">'+lblS+'</button>'
+          +(estS!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+smr+')" style="flex-shrink:0;min-height:38px;min-width:38px;font-size:.8rem;border-radius:7px;">✕</button>':'')
+          +'</div>';
+      }
+      cards+='<div style="background:#111;border-radius:14px;padding:13px 14px;margin-bottom:11px;border:1px solid var(--borde);">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px;">'
         +'<div>'
-        +'<div style="font-weight:800;font-size:1.08rem;">'+nombre+'<button class="btn-edit-n" onclick="abrirModalNombre('+pid+','+hIdx+')" style="margin-left:7px;">✏</button></div>'
-        +'<div style="color:var(--suave);font-size:.8rem;margin-top:3px;">'+habD+' · <span style="color:var(--azul-dark);font-weight:700;">€'+habP+'</span>/sem'+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPrecio('+pid+','+hIdx+')" style="margin-left:5px;">✏</button>':'')+'</div>'
+        +'<div style="font-weight:800;font-size:1.03rem;">'+nombre+'<button class="btn-edit-n" onclick="abrirModalNombre('+pid+','+hIdx+')" style="margin-left:6px;">✏</button></div>'
+        +'<div style="color:var(--suave);font-size:.77rem;margin-top:2px;">'+habD+' · <span style="color:var(--azul-dark);font-weight:700;">€'+habP+'</span>/sem'+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPrecio('+pid+','+hIdx+')" style="margin-left:4px;">✏</button>':'')+'</div>'
         +'</div>'
         +resHtmlM
         +'</div>'
-        +'<button class="pago-btn '+(est2==='pendiente'?'pendiente':est2==='contabilizada'?'contabilizada':'recogida')+'" onclick="abrirModalPago('+pid+','+hIdx+','+semMob+')" style="width:100%;min-height:54px;font-size:1.05rem;font-weight:700;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:10px;">'
-        +'<span>'+lbl2+'</span><span style="font-size:.85rem;opacity:.7;">✎</span></button>'
-        +(isParcial2?'<div class="prog-mini" style="margin-top:8px;"><div class="prog-mini-fill '+est2+'" style="width:'+pct2+'%"></div></div>':'')
-        +(notas2?'<div class="nota-display" style="margin-top:7px;font-size:.82rem;">📝 '+notas2+'</div>':'')
-        +(est2!=='pendiente'?'<button class="btn-del-pago" onclick="borrarCelda('+pid+','+hIdx+','+semMob+')" style="margin-top:9px;width:100%;min-height:40px;font-size:.84rem;border-radius:8px;">✕ Borrar pago</button>':'')
+        +semFilas
         +'</div>';
     });
     var totalBarM='<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:13px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">'
-      +'<span style="font-size:.82rem;color:var(--suave);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Total Sem '+(semMob+1)+'</span>'
-      +'<span style="font-weight:800;font-size:1.2rem;color:var(--verde-dark);">€'+totSemMob.toLocaleString()+'</span>'
+      +'<span style="font-size:.82rem;color:var(--suave);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Total '+MESES[mesActual]+'</span>'
+      +'<span style="font-weight:800;font-size:1.2rem;color:var(--verde-dark);">€'+totMobTotal.toLocaleString()+'</span>'
       +'</div>';
     el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab · Gastos: €'+piso.gastos.toLocaleString()+'/mes · '+MESES[mesActual]+' '+anioActual+'</div></div>'+botonesRow+'</div>'
-      +hint+semNav+cards+totalBarM+resumenRow;
+      +hint+cards+totalBarM+resumenRow;
     return;
   }
 
@@ -2098,8 +2105,8 @@ function actualizarBadges(){
 
 // NAVEGACIÓN VISTAS
 function mostrarVista(nombre){
-  if(esTrab()){
-    var soloAdmin=['dashboard','anual','historial','usuarios'];
+  if(esTrab()||esEmpleado()){
+    var soloAdmin=['dashboard','anual','historial','usuarios','tienda'];
     for(var i=0;i<soloAdmin.length;i++){if(soloAdmin[i]===nombre) return;}
     if(nombre.indexOf('piso-')===0){var pid=parseInt(nombre.replace('piso-',''));if(!tienePiso(pid)) return;}
   }
