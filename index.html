@@ -1539,6 +1539,7 @@ function renderPisoView(pid){
         +'<div style="font-size:1.1rem;font-weight:800;color:var(--ambar-dark)">€'+sc2.toLocaleString()+'</div></div>'
         +'</div></div>';
     })();
+  if(esEmpleado()) resumenRow='';
 
   var isMob=window.innerWidth<=640;
 
@@ -1595,7 +1596,7 @@ function renderPisoView(pid){
       +'<span style="font-size:.82rem;color:var(--suave);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Total '+MESES[mesActual]+'</span>'
       +'<span style="font-weight:800;font-size:1.2rem;color:var(--verde-dark);">€'+totMobTotal.toLocaleString()+'</span>'
       +'</div>';
-    el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab · Gastos: €'+piso.gastos.toLocaleString()+'/mes · '+MESES[mesActual]+' '+anioActual+'</div></div>'+botonesRow+'</div>'
+    el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab'+(esEmpleado()?'':' · Gastos: €'+piso.gastos.toLocaleString()+'/mes')+' · '+MESES[mesActual]+' '+anioActual+'</div></div>'+botonesRow+'</div>'
       +hint+cards+totalBarM+resumenRow;
     return;
   }
@@ -1648,7 +1649,7 @@ function renderPisoView(pid){
   });
   var totCeldas='';
   for(var sc=0;sc<5;sc++){var actc=isSemActiva(anioActual,mesActual,pid,sc);totCeldas+='<td class="'+(actc?'':'sem-disabled')+'">€'+totSems[sc].toLocaleString()+'</td>';}
-  el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab · Gastos fijos: €'+piso.gastos.toLocaleString()+'/mes</div></div>'+botonesRow+'</div>'
+  el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab'+(esEmpleado()?'':' · Gastos fijos: €'+piso.gastos.toLocaleString()+'/mes')+'</div></div>'+botonesRow+'</div>'
     +hint
     +'<div class="tabla-wrap"><table class="tabla"><thead>'
     +'<tr class="th1"><th colspan="4">'+MESES[mesActual]+' '+anioActual+'</th>'+semHdrs+'</tr>'
