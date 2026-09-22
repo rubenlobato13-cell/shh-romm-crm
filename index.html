@@ -1139,7 +1139,7 @@ function guardarPagos(){
   var parciales=parcialesToEdit.filter(function(p){return (parseFloat(p.imp)||0)>0;});
   var estado=(esTrab()||esEmpleado())?'recogida':estadoEdit;
   var k=pk(anioActual,mesActual,pid,hIdx,sIdx);
-  if(parciales.length===0&&!done){delete pagos[k];}else{pagos[k]={parciales:parciales,done:done,estado:estado};}
+  if(parciales.length===0&&!done){delete pagos[k];}else{pagos[k]={parciales:parciales,done:done,estado:estado,nombre:getNombre(pid,hIdx)};}
   sv('crm4_pagos',pagos);
   // guardar venta de artículo si procede
   var chkArt=document.getElementById('chk-art');
@@ -1672,7 +1672,7 @@ function marcarPisoRecogido(pid){
       if(!isSemActiva(anioActual,mesActual,pid,s)) continue;
       var data=getPagoData(anioActual,mesActual,pid,hIdx,s);
       var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-      if(est==='pendiente'){pagos[pk(anioActual,mesActual,pid,hIdx,s)]={parciales:[{imp:getHabPrecio(pid,hIdx),metodo:'efectivo',nota:'',fecha:'',titular:''}],done:false,estado:'recogida'};}
+      if(est==='pendiente'){pagos[pk(anioActual,mesActual,pid,hIdx,s)]={parciales:[{imp:getHabPrecio(pid,hIdx),metodo:'efectivo',nota:'',fecha:new Date().toISOString().slice(0,10),titular:''}],done:false,estado:'recogida',nombre:getNombre(pid,hIdx)};}
     }
   });
   sv('crm4_pagos',pagos);renderAll();
@@ -1685,8 +1685,8 @@ function marcarPisoContab(pid){
     for(var s=0;s<5;s++){
       if(!isSemActiva(anioActual,mesActual,pid,s)) continue;
       var data=getPagoData(anioActual,mesActual,pid,hIdx,s);
-      if(data.parciales.length===0&&!data.done){data={parciales:[{imp:getHabPrecio(pid,hIdx),metodo:'efectivo',nota:'',fecha:'',titular:''}],done:false};}
-      data.estado='contabilizada';pagos[pk(anioActual,mesActual,pid,hIdx,s)]=data;
+      if(data.parciales.length===0&&!data.done){data={parciales:[{imp:getHabPrecio(pid,hIdx),metodo:'efectivo',nota:'',fecha:new Date().toISOString().slice(0,10),titular:''}],done:false};}
+      data.estado='contabilizada';if(!data.nombre) data.nombre=getNombre(pid,hIdx);pagos[pk(anioActual,mesActual,pid,hIdx,s)]=data;
     }
   });
   sv('crm4_pagos',pagos);renderAll();
@@ -1944,7 +1944,7 @@ function exportarExcel(){
     var piso=PISOS[pid];if(!piso) return;
     var hab=piso.habs[hIdx];if(!hab) return;
     var data=pagos[k];
-    var nombre=getNombre(pid,hIdx);
+    var nombre=data.nombre||getNombre(pid,hIdx);
     var ciudad=piso.ciudad||'Valencia';
     var estado=data.parciales.length===0&&!data.done?'Pendiente':(data.estado==='contabilizada'?'Contabilizada':'Recogida');
     var rk=nombre+'|'+ciudad;
