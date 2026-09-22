@@ -1179,7 +1179,20 @@ function abrirModalNombre(pid,hIdx){
 }
 function guardarNombre(){
   var ctx=modalCtx,v=document.getElementById('mn-input').value.trim().toUpperCase();
-  nombres[hk(ctx.pid,ctx.hIdx)]=v;sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
+  var pid=ctx.pid,hIdx=ctx.hIdx;
+  var nombreAnterior=getNombre(pid,hIdx);
+  // Sellar con el nombre antiguo todos los pagos existentes que aún no tengan nombre guardado
+  if(nombreAnterior&&v!==nombreAnterior){
+    Object.keys(pagos).forEach(function(k){
+      var pts=k.split('-');
+      if(pts.length!==5) return;
+      if(parseInt(pts[2])===pid&&parseInt(pts[3])===hIdx){
+        if(!pagos[k].nombre) pagos[k].nombre=nombreAnterior;
+      }
+    });
+    sv('crm4_pagos',pagos);
+  }
+  nombres[hk(pid,hIdx)]=v;sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
 }
 function vaciarHab(){
   if(!confirm('¿Marcar habitación como vacía?')) return;
