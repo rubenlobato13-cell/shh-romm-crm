@@ -478,6 +478,43 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
   </div>
 </div>
 
+<!-- MODAL NOMBRE PISO -->
+<div class="modal-wrap" id="modal-pnombre-wrap">
+  <div class="modal-sm">
+    <h3>🏠 Renombrar piso</h3>
+    <div class="mf"><label>Nombre del piso</label><input type="text" id="mpn-input" placeholder="Ej: Avenida Francia 17..."></div>
+    <div class="sm-btns">
+      <button class="btn-ba" onclick="guardarPisoNombre()">Guardar</button>
+      <button class="btn-bc" onclick="cerrarModal('pnombre')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO PISO -->
+<div class="modal-wrap" id="modal-np-wrap">
+  <div class="modal-usr">
+    <h3>🏠 Añadir nuevo piso</h3>
+    <div class="mf"><label>Nombre del piso</label><input type="text" id="np-nombre" placeholder="Ej: Calle Mayor 5"></div>
+    <div class="mf">
+      <label>Ciudad</label>
+      <select id="np-ciudad" style="width:100%;padding:10px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:8px;font-size:.9rem;">
+        <option value="Valencia">Valencia</option>
+        <option value="Alicante">Alicante</option>
+      </select>
+    </div>
+    <div class="mf"><label>Gastos fijos €/mes</label><input type="number" id="np-gastos" placeholder="Ej: 1500" min="0" style="width:100%;padding:10px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>
+    <div class="mf">
+      <label>Habitaciones <span style="color:var(--suave);font-weight:400;font-size:.75rem;">(nombre · €/sem · día pago)</span></label>
+      <div id="np-habs-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+      <button onclick="addNPHab()" style="width:100%;padding:8px;background:rgba(34,197,94,.12);border:1px dashed rgba(34,197,94,.4);color:#22c55e;border-radius:8px;font-size:.85rem;cursor:pointer;">+ Añadir habitación</button>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn-ok" onclick="guardarNuevoPiso()">✓ Crear piso</button>
+      <button class="mbtn-cancel" onclick="cerrarModal('np')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL RESERVA -->
 <div class="modal-wrap" id="modal-reserva-wrap">
   <div class="modal-sm">
@@ -677,6 +714,7 @@ var _fbDb=null;
 
 var pagos=sg('crm4_pagos',{});
 var nombres=sg('crm4_nombres',{});
+var pisoNombres=sg('crm4_piso_nombres',{});
 var reservas=sg('crm4_reservas',{});
 var semsAct=sg('crm4_sems',{});
 var gastosExtra=sg('crm4_gastos',{});
@@ -686,6 +724,8 @@ var mobileSemActiva={};
 var stockData=sg('crm4_stock',{});
 var ventasList=sg('crm4_ventas',[]);
 var reservasLog=sg('crm4_reservas_log',[]);
+var pisosCustom=sg('crm4_pisos_custom',[]);
+(function(){for(var _ci=0;_ci<pisosCustom.length;_ci++){PISOS.push(pisosCustom[_ci]);if(TODOS_PISOS.indexOf(pisosCustom[_ci].id)===-1)TODOS_PISOS.push(pisosCustom[_ci].id);}})();
 
 // USUARIOS
 var _defUsers=[{id:'admin',nombre:'Rubén',pin:'1111',rol:'admin',pisos:TODOS_PISOS}];
@@ -857,6 +897,7 @@ function gk(a,m){return a+'-'+m;}
 
 // GETTERS
 function getNombre(pid,hIdx){var k=hk(pid,hIdx);return k in nombres?nombres[k]:PISOS[pid].habs[hIdx].n;}
+function getPisoNombre(pid){return pisoNombres[pid]||PISOS[pid].nombre;}
 function isVacia(pid,hIdx){var k=hk(pid,hIdx);return k in nombres&&nombres[k]==='';}
 function getReservaData(pid,hIdx){var k=hk(pid,hIdx);var v=k in reservas?reservas[k]:PISOS[pid].habs[hIdx].r;if(typeof v==='number')return{imp:v,metodo:'efectivo'};return v&&typeof v==='object'?v:{imp:0,metodo:'efectivo'};}
 function getReserva(pid,hIdx){return getReservaData(pid,hIdx).imp;}
@@ -1059,7 +1100,7 @@ function abrirModalPago(pid,hIdx,sIdx){
     return{imp:p.imp,metodo:p.metodo||(oldBiz?'bizum':'efectivo'),nota:p.nota||'',fecha:p.fecha||'',titular:p.titular||'',pagador:p.pagador||''};
   });
   estadoEdit=(esTrab()||esEmpleado())?'recogida':(data.estado||'recogida');
-  document.getElementById('modal-pago-titulo').textContent=nombre+' · '+piso.nombre+' · Sem.'+(sIdx+1);
+  document.getElementById('modal-pago-titulo').textContent=nombre+' · '+getPisoNombre(pid)+' · Sem.'+(sIdx+1);
   document.getElementById('chk-done').checked=data.done;
   var btnC=document.getElementById('btn-contabilizada');
   if(btnC) btnC.style.display=(esTrab()||esEmpleado())?'none':'';
@@ -1173,7 +1214,7 @@ function borrarCelda(pid,hIdx,sIdx){delete pagos[pk(anioActual,mesActual,pid,hId
 // MODAL NOMBRE
 function abrirModalNombre(pid,hIdx){
   modalCtx={pid:pid,hIdx:hIdx};
-  document.getElementById('modal-nombre-titulo').textContent='✏ '+PISOS[pid].nombre+' · Hab.'+(hIdx+1);
+  document.getElementById('modal-nombre-titulo').textContent='✏ '+getPisoNombre(pid)+' · Hab.'+(hIdx+1);
   document.getElementById('mn-input').value=getNombre(pid,hIdx);
   document.getElementById('modal-nombre-wrap').classList.add('open');
   setTimeout(function(){document.getElementById('mn-input').select();},50);
@@ -1195,6 +1236,23 @@ function guardarNombre(){
   }
   nombres[hk(pid,hIdx)]=v;sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
 }
+function abrirModalPisoNombre(pid){
+  modalCtx={pid:pid};
+  document.getElementById('mpn-input').value=getPisoNombre(pid);
+  document.getElementById('modal-pnombre-wrap').classList.add('open');
+  setTimeout(function(){document.getElementById('mpn-input').select();},50);
+}
+function guardarPisoNombre(){
+  var pid=modalCtx.pid;
+  var v=document.getElementById('mpn-input').value.trim();
+  if(!v){alert('El nombre no puede estar vacío.');return;}
+  pisoNombres[pid]=v;
+  sv('crm4_piso_nombres',pisoNombres);
+  var tab=document.getElementById('tab-piso-'+pid);
+  if(tab) tab.textContent=v;
+  cerrarModal('pnombre');
+  renderPisoView(pid);
+}
 function vaciarHab(){
   if(!confirm('¿Marcar habitación como vacía?')) return;
   var ctx=modalCtx;nombres[hk(ctx.pid,ctx.hIdx)]='';sv('crm4_nombres',nombres);cerrarModal('nombre');renderAll();
@@ -1204,7 +1262,7 @@ function vaciarHab(){
 function abrirModalPrecio(pid,hIdx){
   if(!esAdmin()) return;
   modalCtx={pid:pid,hIdx:hIdx};
-  document.getElementById('modal-precio-titulo').textContent='✏ '+PISOS[pid].nombre+' · Hab.'+(hIdx+1)+' — Precio/Día';
+  document.getElementById('modal-precio-titulo').textContent='✏ '+getPisoNombre(pid)+' · Hab.'+(hIdx+1)+' — Precio/Día';
   document.getElementById('mp-precio').value=getHabPrecio(pid,hIdx);
   var sel=document.getElementById('mp-dia');
   sel.value=getHabDia(pid,hIdx);
@@ -1256,7 +1314,7 @@ function addReservaLog(pid,hIdx,tipo,imp,metodo,fechaBiz,titularBiz){
   var piso=PISOS[pid];
   var vid='r_'+now.getTime()+'_'+Math.floor(Math.random()*1000);
   if(!Array.isArray(reservasLog)) reservasLog=[];
-  reservasLog.push({id:vid,fecha:now.toISOString().slice(0,10),anio:now.getFullYear(),mes:now.getMonth(),pid:pid,hIdx:hIdx,nombre:nombre,piso:piso?piso.nombre:'',ciudad:piso?(piso.ciudad||'Valencia'):'',imp:imp,metodo:metodo,tipo:tipo,fechaBiz:fechaBiz||'',titular:titularBiz||''});
+  reservasLog.push({id:vid,fecha:now.toISOString().slice(0,10),anio:now.getFullYear(),mes:now.getMonth(),pid:pid,hIdx:hIdx,nombre:nombre,piso:piso?getPisoNombre(piso.id):'',ciudad:piso?(piso.ciudad||'Valencia'):'',imp:imp,metodo:metodo,tipo:tipo,fechaBiz:fechaBiz||'',titular:titularBiz||''});
   sv('crm4_reservas_log',reservasLog);
 }
 function guardarReserva(){
@@ -1289,7 +1347,7 @@ function abrirModalGe(a,m,pid){
   } else {
     geEdit=data.filter(function(g){return g.autor===usuarioActual.id;}).map(function(g){return{concepto:g.concepto,imp:g.imp,confirmado:false,autor:usuarioActual.id};});
   }
-  var pisoNom=pid!==undefined?' · '+PISOS[pid].nombre:'';
+  var pisoNom=pid!==undefined?' · '+getPisoNombre(pid):'';
   var titulo=esAdmin()?'💸 Gastos extra':'📋 Proponer gasto extra';
   document.getElementById('modal-ge-titulo').textContent=titulo+pisoNom+' — '+MESES[m]+' '+a;
   renderGeList();document.getElementById('modal-ge-wrap').classList.add('open');
@@ -1614,7 +1672,7 @@ function renderPisoView(pid){
       +'<span style="font-size:.82rem;color:var(--suave);font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Total '+MESES[mesActual]+'</span>'
       +'<span style="font-weight:800;font-size:1.2rem;color:var(--verde-dark);">€'+totMobTotal.toLocaleString()+'</span>'
       +'</div>';
-    el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab'+(esEmpleado()?'':' · Gastos: €'+piso.gastos.toLocaleString()+'/mes')+' · '+MESES[mesActual]+' '+anioActual+'</div></div>'+botonesRow+'</div>'
+    el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+getPisoNombre(pid)+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPisoNombre('+pid+')" style="margin-left:8px;font-size:.85rem;" title="Renombrar piso">✏</button>':'')+'</div><div class="piso-vsub">'+piso.habs.length+' hab'+(esEmpleado()?'':' · Gastos: €'+piso.gastos.toLocaleString()+'/mes')+' · '+MESES[mesActual]+' '+anioActual+'</div></div>'+botonesRow+'</div>'
       +hint+cards+totalBarM+resumenRow;
     return;
   }
@@ -1667,7 +1725,7 @@ function renderPisoView(pid){
   });
   var totCeldas='';
   for(var sc=0;sc<5;sc++){var actc=isSemActiva(anioActual,mesActual,pid,sc);totCeldas+='<td class="'+(actc?'':'sem-disabled')+'">€'+totSems[sc].toLocaleString()+'</td>';}
-  el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+piso.nombre+'</div><div class="piso-vsub">'+piso.habs.length+' hab'+(esEmpleado()?'':' · Gastos fijos: €'+piso.gastos.toLocaleString()+'/mes')+'</div></div>'+botonesRow+'</div>'
+  el.innerHTML='<div class="piso-vhdr"><div><div class="piso-vtitle">🏠 '+getPisoNombre(pid)+(esAdmin()?'<button class="btn-edit-n" onclick="abrirModalPisoNombre('+pid+')" style="margin-left:8px;font-size:.85rem;" title="Renombrar piso">✏</button>':'')+'</div><div class="piso-vsub">'+piso.habs.length+' hab'+(esEmpleado()?'':' · Gastos fijos: €'+piso.gastos.toLocaleString()+'/mes')+'</div></div>'+botonesRow+'</div>'
     +hint
     +'<div class="tabla-wrap"><table class="tabla"><thead>'
     +'<tr class="th1"><th colspan="4">'+MESES[mesActual]+' '+anioActual+'</th>'+semHdrs+'</tr>'
@@ -1708,7 +1766,7 @@ function marcarPisoContab(pid){
 function toggleSem(pid,sIdx){if(!esAdmin()) return;semsAct[sk(anioActual,mesActual,pid,sIdx)]=!isSemActiva(anioActual,mesActual,pid,sIdx);sv('crm4_sems',semsAct);renderAll();}
 function limpiarMes(pid){
   if(!esAdmin()) return;
-  if(!confirm('¿Borrar pagos de '+PISOS[pid].nombre+' en '+MESES[mesActual]+' '+anioActual+'?')) return;
+  if(!confirm('¿Borrar pagos de '+getPisoNombre(pid)+' en '+MESES[mesActual]+' '+anioActual+'?')) return;
   PISOS[pid].habs.forEach(function(_,hIdx){for(var s=0;s<5;s++)delete pagos[pk(anioActual,mesActual,pid,hIdx,s)];});
   sv('crm4_pagos',pagos);renderAll();
 }
@@ -1900,7 +1958,7 @@ function renderTienda(){
       var benef=Math.round((pvp-pfc)*qty*100)/100;
       var piso=PISOS[v.pid];
       ventasHtml+='<div class="venta-item">'
-        +'<div class="vi-info"><div class="vi-nom">'+v.nombre+' &middot; '+(piso?piso.nombre:'')+'</div>'
+        +'<div class="vi-info"><div class="vi-nom">'+v.nombre+' &middot; '+(piso?getPisoNombre(piso.id):'')+'</div>'
         +'<div class="vi-sub">'+MESES[v.mes]+' '+v.anio+' &middot; '+v.fecha+' &middot; '+artNom+' x'+qty+'</div></div>'
         +'<div class="vi-right"><div class="vi-pvp">€'+Math.round(pvp*qty*100)/100+'</div><div class="vi-pfc">Benef: +€'+benef+'</div></div>'
         +'<button class="btn-del-v" onclick="borrarVenta(\''+v.id+'\')">✕</button>'
@@ -1962,19 +2020,19 @@ function exportarExcel(){
     var ciudad=piso.ciudad||'Valencia';
     var estado=data.parciales.length===0&&!data.done?'Pendiente':(data.estado==='contabilizada'?'Contabilizada':'Recogida');
     var rk=nombre+'|'+ciudad;
-    if(!resumenMap[rk]) resumenMap[rk]={nombre:nombre,ciudad:ciudad,piso:piso.nombre,bizum:0,efectivo:0,total:0};
+    if(!resumenMap[rk]) resumenMap[rk]={nombre:nombre,ciudad:ciudad,piso:getPisoNombre(pid),bizum:0,efectivo:0,total:0};
     if(data.parciales&&data.parciales.length>0){
       data.parciales.forEach(function(p){
         var imp=parseFloat(p.imp)||0;if(imp===0) return;
         var esBiz=isPBizum(p);
         var metodo=esBiz?'Bizum':'Efectivo';
-        detalle.push(['Sem.'+(sIdx+1),ciudad,piso.nombre,nombre,metodo,imp,p.fecha||'',esBiz?(p.titular||''):'',esBiz?(p.pagador||''):'',estado]);
+        detalle.push(['Sem.'+(sIdx+1),ciudad,getPisoNombre(pid),nombre,metodo,imp,p.fecha||'',esBiz?(p.titular||''):'',esBiz?(p.pagador||''):'',estado]);
         resumenMap[rk].total+=imp;
         if(esBiz) resumenMap[rk].bizum+=imp; else resumenMap[rk].efectivo+=imp;
       });
     } else if(data.done){
       var precio=getHabPrecio(pid,hIdx);
-      detalle.push(['Sem.'+(sIdx+1),ciudad,piso.nombre,nombre,'Efectivo',precio,'','','',estado]);
+      detalle.push(['Sem.'+(sIdx+1),ciudad,getPisoNombre(pid),nombre,'Efectivo',precio,'','','',estado]);
       resumenMap[rk].total+=precio;resumenMap[rk].efectivo+=precio;
     }
   });
@@ -2005,7 +2063,7 @@ function exportarExcel(){
     var pvp=parseFloat(v.pvp)||0;
     var pfc=parseFloat(v.pfc)||0;
     var qty=parseInt(v.qty)||1;
-    tiendaRows.push([v.fecha||'',ciudad,piso?piso.nombre:'',v.nombre||'',art?art.nombre:v.artId,qty,pvp,Math.round(pvp*qty*100)/100,Math.round((pvp-pfc)*qty*100)/100]);
+    tiendaRows.push([v.fecha||'',ciudad,piso?getPisoNombre(piso.id):'',v.nombre||'',art?art.nombre:v.artId,qty,pvp,Math.round(pvp*qty*100)/100,Math.round((pvp-pfc)*qty*100)/100]);
   });
   // ---- HOJA DEPOSITOS ----
   var depRows=[['Fecha','Ciudad','Piso','Nombre','Importe (€)','Método','Fecha Bizum','Titular','Evento']];
@@ -2046,7 +2104,7 @@ function renderHistorial(){
     var nombre=getNombre(pid,hIdx);
     if(fpv&&String(pid)!==fpv) return;if(fev&&est!==fev) return;
     var notas=data.parciales.filter(function(p){return p.nota;}).map(function(p){return '€'+p.imp+'/'+p.nota;}).join(', ');
-    rows+='<tr><td>'+MESES[m]+' '+a+' · Sem.'+(sIdx+1)+'</td><td>'+piso.nombre+'</td><td><strong>'+nombre+'</strong></td><td style="font-weight:700;color:var(--azul-dark)">€'+tot+'</td><td><span class="est-badge '+est+'">'+(est==='contabilizada'?'✅ Contabilizada':est==='recogida'?'📦 Recogida':'✗ Pendiente')+'</span></td><td style="color:var(--suave);font-size:.77rem">'+notas+'</td></tr>';
+    rows+='<tr><td>'+MESES[m]+' '+a+' · Sem.'+(sIdx+1)+'</td><td>'+getPisoNombre(pid)+'</td><td><strong>'+nombre+'</strong></td><td style="font-weight:700;color:var(--azul-dark)">€'+tot+'</td><td><span class="est-badge '+est+'">'+(est==='contabilizada'?'✅ Contabilizada':est==='recogida'?'📦 Recogida':'✗ Pendiente')+'</span></td><td style="color:var(--suave);font-size:.77rem">'+notas+'</td></tr>';
   });
   var tbody=document.getElementById('hist-tbody');
   if(tbody) tbody.innerHTML=rows||'<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--suave)">Sin registros.</td></tr>';
@@ -2072,17 +2130,32 @@ function renderUsuarios(){
     var ini=u.nombre.charAt(0).toUpperCase();
     var pisosHtml=u.rol==='admin'
       ?'<span style="color:var(--suave);font-size:.72rem">Acceso completo a todos los pisos</span>'
-      :((!Array.isArray(u.pisos)||u.pisos.length===0)?'<span style="color:var(--rojo);font-size:.72rem">Sin pisos asignados</span>':u.pisos.map(function(pid){return PISOS[pid]?'<span class="upchip">'+PISOS[pid].nombre.split(' ').slice(0,2).join(' ')+'</span>':''}).join(''));
+      :((!Array.isArray(u.pisos)||u.pisos.length===0)?'<span style="color:var(--rojo);font-size:.72rem">Sin pisos asignados</span>':u.pisos.map(function(pid){return PISOS[pid]?'<span class="upchip">'+getPisoNombre(pid).split(' ').slice(0,2).join(' ')+'</span>':''}).join(''));
     var admins=0;for(var j=0;j<usuarios.length;j++){if(usuarios[j].rol==='admin')admins++;}
     var canDel=!(u.rol==='admin'&&admins<=1);
     return '<div class="usr-item"><div class="usr-av" style="background:'+col+'">'+ini+'</div>'
       +'<div class="usr-inf"><div class="un">'+u.nombre+'</div><div class="ur">'+(u.rol==='admin'?'👑 Administrador':'👤 Socio colaborador')+'</div><div class="usr-pchips">'+pisosHtml+'</div></div>'
       +'<div class="usr-acts"><button class="btn-ue" onclick="abrirModalUsuario(\''+u.id+'\')">✏ Editar</button>'+(canDel?'<button class="btn-ud" onclick="eliminarUsuario(\''+u.id+'\')">✕</button>':'')+'</div></div>';
   }).join('');
+  var pisosCustomHtml='';
+  for(var pci=0;pci<pisosCustom.length;pci++){
+    var pcPiso=pisosCustom[pci];
+    pisosCustomHtml+='<div style="display:flex;align-items:center;justify-content:space-between;background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:11px 14px;margin-bottom:7px;">'
+      +'<div><div style="font-weight:700;font-size:.9rem;">'+getPisoNombre(pcPiso.id)+'</div>'
+      +'<div style="font-size:.73rem;color:var(--suave);">📍 '+pcPiso.ciudad+' · '+pcPiso.habs.length+' hab. · €'+pcPiso.gastos+'/mes</div></div>'
+      +'<button onclick="eliminarPisoCustom('+pcPiso.id+')" style="background:rgba(204,0,0,.7);border:none;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.78rem;">🗑 Eliminar</button>'
+      +'</div>';
+  }
   el.innerHTML='<h2 style="margin-bottom:4px;font-size:1.05rem;">👥 Gestión de usuarios</h2>'
     +'<p style="font-size:.78rem;color:var(--suave);margin-bottom:16px;">Crea usuarios para tu socia y asígnales los pisos. El PIN por defecto del admin es <strong>1111</strong> — cámbialo.</p>'
     +items
-    +'<button class="btn-add-usr" onclick="abrirModalUsuario(null)">+ Añadir usuario</button>';
+    +'<button class="btn-add-usr" onclick="abrirModalUsuario(null)">+ Añadir usuario</button>'
+    +'<div style="margin-top:26px;border-top:1px solid #222;padding-top:20px;">'
+    +'<h3 style="font-size:.92rem;margin-bottom:10px;color:#f0f0f0;">🏠 Pisos personalizados</h3>'
+    +(pisosCustom.length===0?'<p style="font-size:.78rem;color:var(--suave);margin-bottom:12px;">No hay pisos personalizados aún. Los 10 pisos base están siempre disponibles.</p>':'')
+    +pisosCustomHtml
+    +'<button class="btn-add-usr" onclick="abrirModalNuevoPiso()" style="margin-top:4px;background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#22c55e;">🏠 + Añadir nuevo piso</button>'
+    +'</div>';
 }
 
 // BADGES
@@ -2139,6 +2212,71 @@ function mostrarVista(nombre){
   if(nombre==='tienda') renderTienda();
 }
 
+// NUEVO PISO
+var npHabs=[];
+function abrirModalNuevoPiso(){
+  if(!esAdmin()){return;}
+  npHabs=[{n:'HAB 1',p:200,d:'VIERNES',r:0}];
+  document.getElementById('np-nombre').value='';
+  document.getElementById('np-ciudad').value='Valencia';
+  document.getElementById('np-gastos').value='';
+  renderNPHabs();
+  document.getElementById('modal-np-wrap').classList.add('open');
+}
+function renderNPHabs(){
+  var html='';
+  for(var npi=0;npi<npHabs.length;npi++){
+    html+='<div style="display:flex;gap:5px;align-items:center;">'
+      +'<input type="text" placeholder="Nombre" value="'+npHabs[npi].n+'" oninput="npHabs['+npi+'].n=this.value.toUpperCase()" style="flex:2;padding:6px 8px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:6px;font-size:.83rem;">'
+      +'<input type="number" placeholder="€/sem" value="'+npHabs[npi].p+'" oninput="npHabs['+npi+'].p=parseFloat(this.value)||0" style="flex:1;padding:6px 4px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:6px;font-size:.83rem;min-width:55px;">'
+      +'<select onchange="npHabs['+npi+'].d=this.value" style="flex:1;padding:6px 2px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:6px;font-size:.80rem;">'
+      +'<option value="LUNES"'+(npHabs[npi].d==='LUNES'?' selected':'')+'>LUN</option>'
+      +'<option value="MARTES"'+(npHabs[npi].d==='MARTES'?' selected':'')+'>MAR</option>'
+      +'<option value="MX"'+(npHabs[npi].d==='MX'?' selected':'')+'>MX</option>'
+      +'<option value="MIÉRCOLES"'+(npHabs[npi].d==='MIÉRCOLES'?' selected':'')+'>MIÉ</option>'
+      +'<option value="JUEVES"'+(npHabs[npi].d==='JUEVES'?' selected':'')+'>JUE</option>'
+      +'<option value="VIERNES"'+(npHabs[npi].d==='VIERNES'?' selected':'')+'>VIE</option>'
+      +'<option value="SÁBADO"'+(npHabs[npi].d==='SÁBADO'?' selected':'')+'>SÁB</option>'
+      +'<option value="DOMINGO"'+(npHabs[npi].d==='DOMINGO'?' selected':'')+'>DOM</option>'
+      +'</select>'
+      +(npHabs.length>1?'<button onclick="removeNPHab('+npi+')" style="background:#cc0000;border:none;color:#fff;border-radius:6px;padding:5px 8px;cursor:pointer;flex-shrink:0;font-size:.8rem;">✕</button>':'<span style="min-width:32px;"></span>')
+      +'</div>';
+  }
+  document.getElementById('np-habs-list').innerHTML=html;
+}
+function addNPHab(){
+  npHabs.push({n:'HAB '+(npHabs.length+1),p:200,d:'VIERNES',r:0});
+  renderNPHabs();
+}
+function removeNPHab(idx){
+  npHabs.splice(idx,1);
+  renderNPHabs();
+}
+function guardarNuevoPiso(){
+  var nombre=document.getElementById('np-nombre').value.trim();
+  var ciudad=document.getElementById('np-ciudad').value;
+  var gastos=parseFloat(document.getElementById('np-gastos').value)||0;
+  if(!nombre){alert('El nombre del piso es obligatorio.');return;}
+  if(npHabs.length===0){alert('Añade al menos una habitación.');return;}
+  for(var vi=0;vi<npHabs.length;vi++){if(!npHabs[vi].n){alert('Todas las habitaciones necesitan nombre.');return;}}
+  var maxId=9;
+  for(var pi=0;pi<PISOS.length;pi++){if(PISOS[pi].id>maxId) maxId=PISOS[pi].id;}
+  var newId=maxId+1;
+  var newHabs=[];
+  for(var hi=0;hi<npHabs.length;hi++){newHabs.push({n:npHabs[hi].n,p:npHabs[hi].p,d:npHabs[hi].d,r:0});}
+  var newPiso={id:newId,nombre:nombre,ciudad:ciudad,gastos:gastos,habs:newHabs};
+  pisosCustom.push(newPiso);
+  sv('crm4_pisos_custom',pisosCustom);
+  cerrarModal('np');
+  location.reload();
+}
+function eliminarPisoCustom(pid){
+  if(!confirm('¿Eliminar este piso? Los pagos registrados en él no se perderán pero el piso dejará de aparecer.')) return;
+  for(var di=0;di<pisosCustom.length;di++){if(pisosCustom[di].id===pid){pisosCustom.splice(di,1);break;}}
+  sv('crm4_pisos_custom',pisosCustom);
+  location.reload();
+}
+
 // INIT
 function init(){
   var main=document.getElementById('main-content');
@@ -2156,7 +2294,7 @@ function init(){
     PISOS.forEach(function(p){
       if(p.ciudad!==ciudad) return;
       var tab=document.createElement('div');tab.className='tab';tab.id='tab-piso-'+p.id;
-      tab.textContent=p.nombre;tab.onclick=(function(id){return function(){mostrarVista('piso-'+id);};})(p.id);
+      tab.textContent=getPisoNombre(p.id);tab.onclick=(function(id){return function(){mostrarVista('piso-'+id);};})(p.id);
       tabs.insertBefore(tab,alertaTab);
     });
   });
@@ -2186,7 +2324,7 @@ function init(){
 
 window.onload=function(){
   try{
-    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap'].forEach(function(id){
+    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap','modal-pnombre-wrap','modal-np-wrap'].forEach(function(id){
       var el=document.getElementById(id);
       if(el) el.addEventListener('click',function(e){if(e.target===e.currentTarget)cerrarModal();});
     });
@@ -2201,7 +2339,7 @@ window.onload=function(){
 (function(){try{
 var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});
 _fbDb=firebase.database(app);
-_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
+_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);pisoNombres=upd('crm4_piso_nombres',pisoNombres);pisosCustom=upd('crm4_pisos_custom',pisosCustom);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
 }catch(e){console.log('Firebase error:',e);}})();
 </script>
 </body>
