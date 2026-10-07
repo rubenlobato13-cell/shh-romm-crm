@@ -458,6 +458,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
       </div>
       <div class="art-benef-info" id="art-benef-info"></div>
     </div>
+    <div id="art-hist-box" style="display:none;margin-top:8px;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:8px;padding:10px;"></div>
     <div class="mbtns" style="margin-top:10px;">
       <button class="mbtn-ok" onclick="guardarPagos()">✓ Guardar</button>
       <button class="mbtn-cancel" onclick="cerrarModal('pago')">Cancelar</button>
@@ -511,6 +512,30 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:var(--fondo);color:var(-
     <div class="mbtns">
       <button class="mbtn-ok" onclick="guardarNuevoPiso()">✓ Crear piso</button>
       <button class="mbtn-cancel" onclick="cerrarModal('np')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO ARTICULO -->
+<div class="modal-wrap" id="modal-na-wrap">
+  <div class="modal-usr">
+    <h3>🛒 Añadir artículo a la tienda</h3>
+    <div class="mf"><label>Nombre del artículo</label><input type="text" id="na-nombre" placeholder="Ej: DUREX Extra 100ml"></div>
+    <div class="mf">
+      <label>Categoría</label>
+      <select id="na-cat" style="width:100%;padding:10px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:8px;font-size:.9rem;">
+        <option value="Lubricante">Lubricante</option>
+        <option value="Preservativo">Preservativo</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
+    <div class="mf" style="display:flex;gap:10px;">
+      <div style="flex:1;"><label>PFC € (coste)</label><input type="number" id="na-pfc" placeholder="0" min="0" step="0.5" style="width:100%;padding:10px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>
+      <div style="flex:1;"><label>PVP € (venta)</label><input type="number" id="na-pvp" placeholder="0" min="0" step="0.5" style="width:100%;padding:10px;background:#1a1a1a;color:#f0f0f0;border:1px solid #3a3a3a;border-radius:8px;font-size:.9rem;box-sizing:border-box;"></div>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn-ok" onclick="guardarNuevoArticulo()">✓ Añadir artículo</button>
+      <button class="mbtn-cancel" onclick="cerrarModal('na')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -726,6 +751,8 @@ var ventasList=sg('crm4_ventas',[]);
 var reservasLog=sg('crm4_reservas_log',[]);
 var pisosCustom=sg('crm4_pisos_custom',[]);
 (function(){for(var _ci=0;_ci<pisosCustom.length;_ci++){PISOS.push(pisosCustom[_ci]);if(TODOS_PISOS.indexOf(pisosCustom[_ci].id)===-1)TODOS_PISOS.push(pisosCustom[_ci].id);}})();
+var articulosCustom=sg('crm4_articulos_custom',[]);
+(function(){for(var _ai=0;_ai<articulosCustom.length;_ai++){ARTICULOS.push(articulosCustom[_ai]);}})();
 
 // USUARIOS
 var _defUsers=[{id:'admin',nombre:'Rubén',pin:'1111',rol:'admin',pisos:TODOS_PISOS}];
@@ -1046,7 +1073,11 @@ function calcVentasIngresosMes(a,m){
 function buildArtOptions(){
   var opts='<option value="">-- Seleccionar artículo --</option>';
   var cats=['Lubricante','Preservativo'];
+  for(var _bac=0;_bac<ARTICULOS.length;_bac++){var _bc=ARTICULOS[_bac].cat;if(_bc&&cats.indexOf(_bc)===-1)cats.push(_bc);}
   cats.forEach(function(cat){
+    var hasCat=false;
+    for(var _h=0;_h<ARTICULOS.length;_h++){if(ARTICULOS[_h].cat===cat){hasCat=true;break;}}
+    if(!hasCat) return;
     opts+='<optgroup label="'+cat+'s">';
     ARTICULOS.forEach(function(a){
       if(a.cat!==cat) return;
@@ -1119,6 +1150,29 @@ function abrirModalPago(pid,hIdx,sIdx){
   if(artPvp){artPvp.value='';artPvp.dataset.lastArt='';}
   var artBi=document.getElementById('art-benef-info');
   if(artBi){artBi.innerHTML='';}
+  // historial de compras de esta chica
+  var histEl=document.getElementById('art-hist-box');
+  if(histEl){
+    var histVentas=(Array.isArray(ventasList)?ventasList:[]).filter(function(v){return v.pid===pid&&v.hIdx===hIdx;}).slice().reverse();
+    if(histVentas.length===0){
+      histEl.style.display='none';
+    } else {
+      var histHtml='<div style="font-size:.72rem;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;">🛍 Compras anteriores de '+nombre+'</div>';
+      for(var _hi=0;_hi<histVentas.length&&_hi<8;_hi++){
+        var hv=histVentas[_hi];
+        var ha=getArt(hv.artId);
+        var hnom=ha?ha.nombre:(hv.artId||'—');
+        histHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #1a1a1a;font-size:.78rem;">'
+          +'<span style="color:#d1d5db;">'+hv.fecha+'</span>'
+          +'<span style="flex:1;margin:0 8px;color:#f0f0f0;">'+hnom+'</span>'
+          +'<span style="color:var(--suave);">x'+hv.qty+'</span>'
+          +'<span style="color:var(--verde-dark);margin-left:8px;font-weight:700;">€'+(Math.round(hv.pvp*hv.qty*100)/100)+'</span>'
+          +'</div>';
+      }
+      histEl.innerHTML=histHtml;
+      histEl.style.display='block';
+    }
+  }
   document.getElementById('modal-pago-wrap').classList.add('open');
 }
 function selEstado(est){if((esTrab()||esEmpleado())&&est==='contabilizada') return;estadoEdit=est;actualizarEstadoBtns();}
@@ -1455,7 +1509,7 @@ function eliminarUsuario(uid){
 
 // CERRAR MODALES
 function cerrarModal(which){
-  var ids=['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap'];
+  var ids=['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap','modal-pnombre-wrap','modal-np-wrap','modal-na-wrap'];
   if(which){var el=document.getElementById('modal-'+which+'-wrap');if(el)el.classList.remove('open');}
   else{ids.forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('open');});}
   modalCtx=null;
@@ -1903,28 +1957,43 @@ function renderTienda(){
     +'<div class="tienda-stat"><div class="ts-lbl">Beneficio mes</div><div class="ts-val" style="color:var(--verde-dark)">+€'+totBenef.toLocaleString()+'</div></div>'
     +'<div class="tienda-stat"><div class="ts-lbl">Ventas mes</div><div class="ts-val">'+(Array.isArray(ventasList)?ventasList.filter(function(v){return v.anio===anioActual&&v.mes===mesActual;}).length:0)+'</div></div>'
     +'</div>';
+  // Buscador de artículos
+  var buscadorHtml='<div style="margin-bottom:12px;position:relative;">'
+    +'<input type="text" id="tienda-search" placeholder="🔍 Buscar artículo..." oninput="filtrarArticulos()" '
+    +'style="width:100%;padding:10px 14px;background:#111;color:#f0f0f0;border:1.5px solid #3a3a3a;border-radius:10px;font-size:.9rem;box-sizing:border-box;">'
+    +'<button onclick="document.getElementById(\'tienda-search\').value=\'\';filtrarArticulos();" '
+    +'id="tienda-search-clear" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--suave);font-size:1rem;cursor:pointer;">✕</button>'
+    +'</div>';
   // Cabecera tabla artículos
   var artHdrHtml='<div class="art-tbl-hdr"><span>Artículo</span><span style="text-align:center">Stock</span><span style="text-align:center">PFC €</span><span style="text-align:center">PVP €</span><span style="text-align:right">Benef/u</span></div>';
-  // Artículos por categoría
-  var cats=['Lubricante','Preservativo'];
+  // Artículos por categoría (incluye custom)
+  var catsUsadas=['Lubricante','Preservativo'];
+  for(var _ca=0;_ca<ARTICULOS.length;_ca++){var _ccat=ARTICULOS[_ca].cat;if(_ccat&&catsUsadas.indexOf(_ccat)===-1)catsUsadas.push(_ccat);}
+  var cats=catsUsadas;
   var artHtml='';
   cats.forEach(function(cat){
-    artHtml+='<div class="tienda-cat-hdr">'+( cat==='Lubricante'?'🧴':'🛡')+'&nbsp;'+cat+'s</div>';
-    artHtml+=artHdrHtml;
+    var icono=cat==='Lubricante'?'🧴':cat==='Preservativo'?'🛡':'📦';
+    artHtml+='<div class="tienda-cat-hdr" data-cat="'+cat+'">'+icono+'&nbsp;'+cat+'s</div>';
+    artHtml+='<div class="art-tbl-hdr" data-cat="'+cat+'"><span>Artículo</span><span style="text-align:center">Stock</span><span style="text-align:center">PFC €</span><span style="text-align:center">PVP €</span><span style="text-align:right">Benef/u</span></div>';
     ARTICULOS.forEach(function(a){
       if(a.cat!==cat) return;
       var se=getStockEntry(a.id);
       var benef=Math.round((se.pvp-se.pfc)*100)/100;
       var benefColor=benef>0?'color:var(--verde-dark)':benef<0?'color:var(--rojo-dark)':'color:var(--suave)';
-      artHtml+='<div class="art-row">'
-        +'<div class="art-nom">'+a.nombre+'</div>'
+      var isCustom=false;
+      for(var _cci=0;_cci<articulosCustom.length;_cci++){if(articulosCustom[_cci].id===a.id){isCustom=true;break;}}
+      artHtml+='<div class="art-row" data-nombre="'+a.nombre.toLowerCase()+'" data-cat="'+cat+'">'
+        +'<div class="art-nom">'+a.nombre+(isCustom?'<span style="font-size:.65rem;background:rgba(34,197,94,.15);color:#22c55e;border-radius:4px;padding:1px 5px;margin-left:5px;">custom</span>':'')+'</div>'
         +'<div class="art-col"><span class="art-lbl">Stock</span><input class="art-inp" type="number" min="0" value="'+se.qty+'" onchange="updateStockField(\''+a.id+'\',\'qty\',this.value)"></div>'
         +'<div class="art-col"><span class="art-lbl">PFC €</span><input class="art-inp" type="number" min="0" step="0.5" value="'+se.pfc+'" onchange="updateStockField(\''+a.id+'\',\'pfc\',this.value)"></div>'
         +'<div class="art-col"><span class="art-lbl">PVP €</span><input class="art-inp" type="number" min="0" step="0.5" value="'+se.pvp+'" onchange="updateStockField(\''+a.id+'\',\'pvp\',this.value)"></div>'
-        +'<div class="art-benef" style="'+benefColor+'">'+(benef===0?'—':(benef>0?'+':'')+'€'+benef)+'</div>'
+        +'<div class="art-benef" style="'+benefColor+'">'+(benef===0?'—':(benef>0?'+':'')+'€'+benef)+(isCustom&&esAdmin()?'<button onclick="eliminarArticuloCustom(\''+a.id+'\')" style="display:block;margin-top:4px;background:rgba(204,0,0,.7);border:none;color:#fff;border-radius:5px;padding:2px 7px;cursor:pointer;font-size:.7rem;">🗑</button>':'')+'</div>'
         +'</div>';
     });
   });
+  if(esAdmin()){
+    artHtml+='<button class="btn-add-usr" onclick="abrirModalNuevoArticulo()" style="margin-top:10px;margin-bottom:4px;background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#22c55e;">🛒 + Añadir artículo</button>';
+  }
   // Ventas recientes (historial)
   var ventasFiltradas=(Array.isArray(ventasList)?ventasList:[]).slice().reverse();
   var ventasHtml='<div class="tienda-ventas-section">'
@@ -1971,8 +2040,35 @@ function renderTienda(){
     +'<span style="font-size:.75rem;color:var(--suave);">Edita precios y stock directamente</span>'
     +'</div>'
     +resumenHtml
+    +buscadorHtml
     +artHtml
     +ventasHtml;
+}
+function filtrarArticulos(){
+  var inp=document.getElementById('tienda-search');
+  if(!inp) return;
+  var q=inp.value.toLowerCase().trim();
+  var clearBtn=document.getElementById('tienda-search-clear');
+  if(clearBtn) clearBtn.style.display=q?'block':'none';
+  var rows=document.querySelectorAll('#view-tienda .art-row');
+  for(var _fi=0;_fi<rows.length;_fi++){
+    var row=rows[_fi];
+    var nom=row.getAttribute('data-nombre')||'';
+    row.style.display=(!q||nom.indexOf(q)!==-1)?'':'none';
+  }
+  // mostrar/ocultar cabeceras de categoría según si tienen filas visibles
+  var cats=document.querySelectorAll('#view-tienda [data-cat]');
+  var catVis={};
+  for(var _ri=0;_ri<rows.length;_ri++){
+    var r=rows[_ri];if(r.style.display==='none') continue;
+    catVis[r.getAttribute('data-cat')]=true;
+  }
+  for(var _ci2=0;_ci2<cats.length;_ci2++){
+    var cel=cats[_ci2];
+    if(cel.classList.contains('art-row')) continue;
+    var ccat=cel.getAttribute('data-cat');
+    cel.style.display=catVis[ccat]?'':'none';
+  }
 }
 function updateStockField(artId,field,val){
   var se=getStockEntry(artId);
@@ -2212,6 +2308,39 @@ function mostrarVista(nombre){
   if(nombre==='tienda') renderTienda();
 }
 
+// NUEVO ARTICULO
+function abrirModalNuevoArticulo(){
+  if(!esAdmin()){return;}
+  document.getElementById('na-nombre').value='';
+  document.getElementById('na-cat').value='Lubricante';
+  document.getElementById('na-pfc').value='';
+  document.getElementById('na-pvp').value='';
+  document.getElementById('modal-na-wrap').classList.add('open');
+}
+function guardarNuevoArticulo(){
+  var nombre=document.getElementById('na-nombre').value.trim();
+  var cat=document.getElementById('na-cat').value;
+  var pfc=parseFloat(document.getElementById('na-pfc').value)||0;
+  var pvp=parseFloat(document.getElementById('na-pvp').value)||0;
+  if(!nombre){alert('El nombre del artículo es obligatorio.');return;}
+  var newId='CUS'+(articulosCustom.length+1<10?'0'+(articulosCustom.length+1):articulosCustom.length+1);
+  // evitar ID duplicado
+  for(var xi=0;xi<ARTICULOS.length;xi++){if(ARTICULOS[xi].id===newId){newId='CUS'+Date.now();break;}}
+  var newArt={id:newId,cat:cat,nombre:nombre,pvpDef:pvp};
+  articulosCustom.push(newArt);
+  sv('crm4_articulos_custom',articulosCustom);
+  // también inicializar su stock
+  saveStockEntry(newId,{pfc:pfc,pvp:pvp,qty:0});
+  cerrarModal('na');
+  location.reload();
+}
+function eliminarArticuloCustom(artId){
+  if(!confirm('¿Eliminar este artículo? El historial de ventas no se perderá.')) return;
+  for(var di=0;di<articulosCustom.length;di++){if(articulosCustom[di].id===artId){articulosCustom.splice(di,1);break;}}
+  sv('crm4_articulos_custom',articulosCustom);
+  location.reload();
+}
+
 // NUEVO PISO
 var npHabs=[];
 function abrirModalNuevoPiso(){
@@ -2324,7 +2453,7 @@ function init(){
 
 window.onload=function(){
   try{
-    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap','modal-pnombre-wrap','modal-np-wrap'].forEach(function(id){
+    ['modal-pago-wrap','modal-nombre-wrap','modal-reserva-wrap','modal-ge-wrap','modal-usr-wrap','modal-precio-wrap','modal-pnombre-wrap','modal-np-wrap','modal-na-wrap'].forEach(function(id){
       var el=document.getElementById(id);
       if(el) el.addEventListener('click',function(e){if(e.target===e.currentTarget)cerrarModal();});
     });
@@ -2339,7 +2468,7 @@ window.onload=function(){
 (function(){try{
 var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});
 _fbDb=firebase.database(app);
-_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);pisoNombres=upd('crm4_piso_nombres',pisoNombres);pisosCustom=upd('crm4_pisos_custom',pisosCustom);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
+_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);pisoNombres=upd('crm4_piso_nombres',pisoNombres);pisosCustom=upd('crm4_pisos_custom',pisosCustom);articulosCustom=upd('crm4_articulos_custom',articulosCustom);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
 }catch(e){console.log('Firebase error:',e);}})();
 </script>
 </body>
