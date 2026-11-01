@@ -987,21 +987,25 @@ function calcPiso(pid,a,m){
   var piso=getPiso(pid);if(!piso)return {contab:0,recog:0,pendiente:0,esperado:0};
   var contab=0,recog=0,pendiente=0,esperado=0;
   piso.habs.forEach(function(hab,hIdx){
-    if(isVacia(pid,hIdx)) return;
+    var vacia=isVacia(pid,hIdx);
     var precio=getHabPrecio(pid,hIdx);
     for(var s=0;s<5;s++){
       if(!isSemActiva(a,m,pid,s)) continue;
-      esperado+=precio;
       var data=getPagoData(a,m,pid,hIdx,s);
       var tot=getTot(data);
-      var est=data.parciales.length===0&&!data.done?'pendiente':data.estado||'recogida';
-      if(est==='contabilizada') {contab+=tot>0?tot:precio;}
-      else if(est==='recogida'&&(tot>0||data.done)){
+      var hasPago=data.parciales.length>0||data.done;
+      // Vacía sin pago histórico: ignorar completamente
+      if(vacia&&!hasPago) continue;
+      // Esperado y pendiente solo si no está vacía
+      if(!vacia) esperado+=precio;
+      var est=hasPago?data.estado||'recogida':'pendiente';
+      if(est==='contabilizada'){contab+=tot>0?tot:precio;}
+      else if(est==='recogida'&&hasPago){
         var bizAmt=data.parciales.reduce(function(t,p){return t+(isPBizum(p)?parseFloat(p.imp)||0:0);},0);
         var efAmt=data.parciales.reduce(function(t,p){return t+(!isPBizum(p)?parseFloat(p.imp)||0:0);},0);
         contab+=bizAmt;
         recog+=efAmt>0?efAmt:(bizAmt===0?tot:0);
-      } else pendiente+=precio;
+      } else if(!vacia) pendiente+=precio;
     }
   });
   var gastosEx=sumGastosExtraPiso(a,m,pid);
