@@ -774,6 +774,8 @@ var mobileSemActiva={};
 var stockData=sg('crm4_stock',{});
 var ventasList=sg('crm4_ventas',[]);
 var reservasLog=sg('crm4_reservas_log',[]);
+var pisosOcultos=sg('crm4_pisos_ocultos',[]);
+(function(){if(!pisosOcultos.length)return;var np=[];for(var _oi=0;_oi<PISOS.length;_oi++){if(pisosOcultos.indexOf(PISOS[_oi].id)===-1)np.push(PISOS[_oi]);}PISOS=np;var nt=[];for(var _ti=0;_ti<TODOS_PISOS.length;_ti++){if(pisosOcultos.indexOf(TODOS_PISOS[_ti])===-1)nt.push(TODOS_PISOS[_ti]);}TODOS_PISOS=nt;})();
 var pisosCustom=sg('crm4_pisos_custom',[]);
 (function(){for(var _ci=0;_ci<pisosCustom.length;_ci++){PISOS.push(pisosCustom[_ci]);if(TODOS_PISOS.indexOf(pisosCustom[_ci].id)===-1)TODOS_PISOS.push(pisosCustom[_ci].id);}})();
 var articulosCustom=sg('crm4_articulos_custom',[]);
@@ -784,8 +786,8 @@ var pisoOrden=sg('crm4_pisos_orden',[]);
 (function(){if(!pisoOrden.length) return;PISOS.sort(function(a,b){var ia=pisoOrden.indexOf(a.id),ib=pisoOrden.indexOf(b.id);if(ia===-1)ia=9999;if(ib===-1)ib=9999;return ia-ib;});})();
 var pisosArchivados=sg('crm4_pisos_arch',[]);
 (function(){for(var _ai=0;_ai<pisosArchivados.length;_ai++){var _ap=pisosArchivados[_ai];_ap.archivado=true;PISOS.push(_ap);if(TODOS_PISOS.indexOf(_ap.id)===-1)TODOS_PISOS.push(_ap.id);}})();
-// Detectar pagos huérfanos (pisos eliminados sin archivar) y añadir pisos fantasma
-(function(){var knownIds={};for(var _ki=0;_ki<PISOS.length;_ki++)knownIds[PISOS[_ki].id]=true;var orphans={};for(var _ok in pagos){var _op=_ok.split('-');if(_op.length>=5){var _oid=parseInt(_op[2]);if(!isNaN(_oid)&&!knownIds[_oid])orphans[_oid]=true;}}for(var _oid2 in orphans){var _pid2=parseInt(_oid2);var _maxH=0;for(var _ok2 in pagos){var _op2=_ok2.split('-');if(_op2.length>=5&&parseInt(_op2[2])===_pid2){var _h2=parseInt(_op2[3]);if(_h2>_maxH)_maxH=_h2;}}var _gh=[];for(var _gi=0;_gi<=_maxH;_gi++)_gh.push({n:'HAB '+(_gi+1),p:200,d:'VIERNES',r:0});PISOS.push({id:_pid2,nombre:'[Archivado '+_pid2+']',ciudad:'Valencia',gastos:0,habs:_gh,archivado:true});if(TODOS_PISOS.indexOf(_pid2)===-1)TODOS_PISOS.push(_pid2);knownIds[_pid2]=true;}})();
+// Detectar pagos huérfanos y añadirlos a pisosArchivados para que aparezcan en el UI con opción de restaurar
+(function(){var knownIds={};for(var _ki=0;_ki<PISOS.length;_ki++)knownIds[PISOS[_ki].id]=true;var archIds={};for(var _ai=0;_ai<pisosArchivados.length;_ai++)archIds[pisosArchivados[_ai].id]=true;var orphans={};for(var _ok in pagos){var _op=_ok.split('-');if(_op.length>=5){var _oid=parseInt(_op[2]);if(!isNaN(_oid)&&!knownIds[_oid]&&!archIds[_oid])orphans[_oid]=true;}}var _chg=false;for(var _oid2 in orphans){var _pid2=parseInt(_oid2);var _maxH=0;for(var _ok2 in pagos){var _pts=_ok2.split('-');if(_pts.length>=5&&parseInt(_pts[2])===_pid2){var _h2=parseInt(_pts[3]);if(_h2>_maxH)_maxH=_h2;}}var _gh=[];for(var _gi=0;_gi<=_maxH;_gi++)_gh.push({n:'HAB '+(_gi+1),p:200,d:'VIERNES',r:0});var _np={id:_pid2,nombre:'Piso recuperado '+_pid2,ciudad:'Valencia',gastos:0,habs:_gh};pisosArchivados.push(_np);_np.archivado=true;PISOS.push(_np);if(TODOS_PISOS.indexOf(_pid2)===-1)TODOS_PISOS.push(_pid2);knownIds[_pid2]=true;_chg=true;}if(_chg)sv('crm4_pisos_arch',pisosArchivados);})();
 
 // USUARIOS
 var _defUsers=[{id:'admin',nombre:'Rubén',pin:'1111',rol:'admin',pisos:TODOS_PISOS}];
@@ -2284,7 +2286,7 @@ function renderUsuarios(){
       +'<div style="font-size:.73rem;color:var(--suave);">📍 '+tpPiso.ciudad+' · '+tpPiso.habs.length+' hab. · €'+tpPiso.gastos+'/mes</div></div>'
       +'<div style="display:flex;gap:6px;align-items:center;">'
       +'<button onclick="abrirModalEditarPiso('+tpPiso.id+')" style="background:rgba(59,130,246,.7);border:none;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.78rem;">✏ Editar</button>'
-      +(isCustomPiso?'<button onclick="eliminarPisoCustom('+tpPiso.id+')" style="background:rgba(204,0,0,.7);border:none;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.78rem;">🗑</button>':'')
+      +'<button onclick="archivarPiso('+tpPiso.id+')" style="background:rgba(204,0,0,.7);border:none;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.78rem;">🗑</button>'
       +'</div></div>';
   }
   el.innerHTML='<h2 style="margin-bottom:4px;font-size:1.05rem;">👥 Gestión de usuarios</h2>'
@@ -2296,7 +2298,7 @@ function renderUsuarios(){
     +'<p style="font-size:.78rem;color:var(--suave);margin-bottom:12px;">Edita cualquier piso para cambiar nombre, ciudad, gastos o habitaciones. Los pisos personalizados también se pueden eliminar.</p>'
     +todosPisosHtml
     +'<button class="btn-add-usr" onclick="abrirModalNuevoPiso()" style="margin-top:4px;background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#22c55e;">🏠 + Añadir nuevo piso</button>'
-    +(pisosArchivados.length>0?(function(){var _ah='<div style="margin-top:20px;border-top:1px solid #222;padding-top:16px;"><h3 style="font-size:.85rem;margin-bottom:8px;color:var(--suave);">🗃 Pisos archivados <span style="font-weight:400;font-size:.72rem;">(sus pagos siguen en los resúmenes)</span></h3>';for(var _ai=0;_ai<pisosArchivados.length;_ai++){var _ap=pisosArchivados[_ai];_ah+='<div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:9px 14px;margin-bottom:6px;opacity:.7;">'+'<div style="font-size:.85rem;color:var(--suave);">'+_ap.nombre+' <span style="font-size:.7rem;">· '+_ap.ciudad+'</span></div>'+'<button onclick="restaurarPisoArchivado('+_ap.id+')" style="background:rgba(59,130,246,.6);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.75rem;">↩ Restaurar</button>'+'</div>';}return _ah+'</div>';}()):'')
+    +(function(){var _ah='<div style="margin-top:20px;border-top:1px solid #222;padding-top:16px;"><h3 style="font-size:.85rem;margin-bottom:8px;color:var(--suave);">🗃 Pisos archivados <span style="font-weight:400;font-size:.72rem;">(sus pagos siguen en los resúmenes)</span></h3>';if(pisosArchivados.length===0){_ah+='<p style="font-size:.78rem;color:var(--suave);opacity:.5;">No hay pisos archivados.</p>';}else{for(var _ai=0;_ai<pisosArchivados.length;_ai++){var _ap=pisosArchivados[_ai];_ah+='<div style="display:flex;align-items:center;justify-content:space-between;background:#0d0d0d;border:1px solid #2a2a2a;border-radius:10px;padding:9px 14px;margin-bottom:6px;opacity:.7;">'+'<div style="font-size:.85rem;color:var(--suave);">'+_ap.nombre+' <span style="font-size:.7rem;">· '+_ap.ciudad+'</span></div>'+'<button onclick="restaurarPisoArchivado('+_ap.id+')" style="background:rgba(59,130,246,.6);border:none;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:.75rem;">↩ Restaurar</button>'+'</div>';}}return _ah+'</div>';}())
     +'</div>';
 }
 
@@ -2445,27 +2447,45 @@ function guardarNuevoPiso(){
   cerrarModal('np');
   location.reload();
 }
-function eliminarPisoCustom(pid){
-  if(!confirm('¿Archivar este piso? Dejará de aparecer en la navegación pero sus pagos seguirán contabilizándose en los resúmenes.')) return;
-  var piso=null;
-  for(var di=0;di<pisosCustom.length;di++){if(pisosCustom[di].id===pid){piso=pisosCustom[di];pisosCustom.splice(di,1);break;}}
-  if(piso){pisosArchivados.push(piso);sv('crm4_pisos_arch',pisosArchivados);}
-  sv('crm4_pisos_custom',pisosCustom);
+function eliminarPisoCustom(pid){archivarPiso(pid);}
+function archivarPiso(pid){
+  if(!confirm('¿Archivar este piso? Desaparecerá de la navegación pero sus pagos seguirán contabilizándose en los resúmenes.')) return;
+  var isCustom=false;
+  for(var _ci=0;_ci<pisosCustom.length;_ci++){if(pisosCustom[_ci].id===pid){isCustom=true;break;}}
+  if(isCustom){
+    var pisoDat=null;
+    for(var _ci2=0;_ci2<pisosCustom.length;_ci2++){if(pisosCustom[_ci2].id===pid){pisoDat=pisosCustom[_ci2];pisosCustom.splice(_ci2,1);break;}}
+    if(pisoDat){pisosArchivados.push(pisoDat);sv('crm4_pisos_arch',pisosArchivados);}
+    sv('crm4_pisos_custom',pisosCustom);
+  } else {
+    var piso=getPiso(pid);
+    if(piso){pisosArchivados.push({id:piso.id,nombre:piso.nombre,ciudad:piso.ciudad,gastos:piso.gastos,habs:piso.habs});}
+    if(pisosOcultos.indexOf(pid)===-1){pisosOcultos.push(pid);}
+    sv('crm4_pisos_ocultos',pisosOcultos);
+    sv('crm4_pisos_arch',pisosArchivados);
+  }
   location.reload();
 }
 
 function restaurarPisoArchivado(pid){
-  for(var _ri=0;_ri<pisosArchivados.length;_ri++){
-    if(pisosArchivados[_ri].id===pid){
-      var piso=pisosArchivados[_ri];
-      pisosArchivados.splice(_ri,1);
-      pisosCustom.push(piso);
-      sv('crm4_pisos_arch',pisosArchivados);
-      sv('crm4_pisos_custom',pisosCustom);
-      location.reload();
-      return;
-    }
+  var _pisoIdx=-1;
+  for(var _ri=0;_ri<pisosArchivados.length;_ri++){if(pisosArchivados[_ri].id===pid){_pisoIdx=_ri;break;}}
+  if(_pisoIdx===-1) return;
+  var _pisoDat=pisosArchivados[_pisoIdx];
+  pisosArchivados.splice(_pisoIdx,1);
+  sv('crm4_pisos_arch',pisosArchivados);
+  if(pid<10){
+    // Piso base: solo quitarlo de ocultos para que vuelva a aparecer
+    var _oi=pisosOcultos.indexOf(pid);
+    if(_oi!==-1){pisosOcultos.splice(_oi,1);}
+    sv('crm4_pisos_ocultos',pisosOcultos);
+  } else {
+    // Piso custom: devolver a la lista de customs
+    delete _pisoDat.archivado;
+    pisosCustom.push(_pisoDat);
+    sv('crm4_pisos_custom',pisosCustom);
   }
+  location.reload();
 }
 
 // REORDENAR PISOS
@@ -2654,7 +2674,7 @@ window.onload=function(){
 (function(){try{
 var app=firebase.initializeApp({apiKey:"AIzaSyAlZYdPJVpFD3zwMYikXJ5BzQwcBwR6TPg",authDomain:"shh-room-crm.firebaseapp.com",databaseURL:"https://shh-room-crm-default-rtdb.europe-west1.firebasedatabase.app",projectId:"shh-room-crm",storageBucket:"shh-room-crm.firebasestorage.app",messagingSenderId:"1032498413641",appId:"1:1032498413641:web:be0a7f9e998fa785fd7f98"});
 _fbDb=firebase.database(app);
-_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);pisoNombres=upd('crm4_piso_nombres',pisoNombres);pisosCustom=upd('crm4_pisos_custom',pisosCustom);articulosCustom=upd('crm4_articulos_custom',articulosCustom);pisoEdits=upd('crm4_pisos_edits',pisoEdits);pisoOrden=upd('crm4_pisos_orden',pisoOrden);pisosArchivados=upd('crm4_pisos_arch',pisosArchivados);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
+_fbDb.ref('crm4').on('value',function(snap){var d=snap.val()||{};var ch=false;function upd(k,cur){if(d[k]==null)return cur;var ns=JSON.stringify(d[k]);if(ns!==JSON.stringify(cur)){ch=true;try{localStorage.setItem(k,JSON.stringify(d[k]));}catch(e){}return d[k];}return cur;}pagos=upd('crm4_pagos',pagos);nombres=upd('crm4_nombres',nombres);reservas=upd('crm4_reservas',reservas);semsAct=upd('crm4_sems',semsAct);gastosExtra=upd('crm4_gastos',gastosExtra);precios=upd('crm4_precios',precios);aniosExcluidos=upd('crm4_anios_excl',aniosExcluidos);stockData=upd('crm4_stock',stockData);ventasList=upd('crm4_ventas',ventasList);reservasLog=upd('crm4_reservas_log',reservasLog);pisoNombres=upd('crm4_piso_nombres',pisoNombres);pisosCustom=upd('crm4_pisos_custom',pisosCustom);articulosCustom=upd('crm4_articulos_custom',articulosCustom);pisoEdits=upd('crm4_pisos_edits',pisoEdits);pisoOrden=upd('crm4_pisos_orden',pisoOrden);pisosArchivados=upd('crm4_pisos_arch',pisosArchivados);pisosOcultos=upd('crm4_pisos_ocultos',pisosOcultos);var nu=upd('crm4_users',usuarios);if(nu!==usuarios){usuarios=nu;}if(ch&&usuarioActual){renderAll();}});
 }catch(e){console.log('Firebase error:',e);}})();
 </script>
 </body>
