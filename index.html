@@ -2023,7 +2023,7 @@ function renderTienda(){
       var benefColor=benef>0?'color:var(--verde-dark)':benef<0?'color:var(--rojo-dark)':'color:var(--suave)';
       var isCustom=false;
       for(var _cci=0;_cci<articulosCustom.length;_cci++){if(articulosCustom[_cci].id===a.id){isCustom=true;break;}}
-      artHtml+='<div class="art-row" data-nombre="'+a.nombre.toLowerCase()+'" data-cat="'+cat+'">'
+      artHtml+='<div class="art-row" data-nombre="'+a.nombre.toLowerCase()+'" data-cat="'+cat+'" data-qty="'+se.qty+'">'
         +'<div class="art-nom">'+a.nombre+(isCustom?'<span style="font-size:.65rem;background:rgba(34,197,94,.15);color:#22c55e;border-radius:4px;padding:1px 5px;margin-left:5px;">custom</span>':'')+'</div>'
         +'<div class="art-col"><span class="art-lbl">Stock</span><input class="art-inp" type="number" min="0" value="'+se.qty+'" onchange="updateStockField(\''+a.id+'\',\'qty\',this.value)"></div>'
         +'<div class="art-col"><span class="art-lbl">PFC €</span><input class="art-inp" type="number" min="0" step="0.5" value="'+se.pfc+'" onchange="updateStockField(\''+a.id+'\',\'pfc\',this.value)"></div>'
@@ -2066,7 +2066,7 @@ function renderTienda(){
       var pfc=parseFloat(v.pfc)||0;
       var qty=parseInt(v.qty)||1;
       var benef=Math.round((pvp-pfc)*qty*100)/100;
-      var piso=PISOS[v.pid];
+      var piso=getPiso(v.pid);
       ventasHtml+='<div class="venta-item">'
         +'<div class="vi-info"><div class="vi-nom">'+v.nombre+' &middot; '+(piso?getPisoNombre(piso.id):'')+'</div>'
         +'<div class="vi-sub">'+MESES[v.mes]+' '+v.anio+' &middot; '+v.fecha+' &middot; '+artNom+' x'+qty+'</div></div>'
@@ -2084,6 +2084,7 @@ function renderTienda(){
     +buscadorHtml
     +artHtml
     +ventasHtml;
+  filtrarArticulos();
 }
 function filtrarArticulos(){
   var inp=document.getElementById('tienda-search');
@@ -2095,7 +2096,12 @@ function filtrarArticulos(){
   for(var _fi=0;_fi<rows.length;_fi++){
     var row=rows[_fi];
     var nom=row.getAttribute('data-nombre')||'';
-    row.style.display=(!q||nom.indexOf(q)!==-1)?'':'none';
+    var qty=parseInt(row.getAttribute('data-qty')||'0');
+    var matchBusqueda=!q||nom.indexOf(q)!==-1;
+    // Sin búsqueda: solo artículos con stock > 0
+    // Con búsqueda: todos los que coincidan (aunque stock = 0, para poder añadir)
+    var visible=matchBusqueda&&(q||qty>0);
+    row.style.display=visible?'':'none';
   }
   // mostrar/ocultar cabeceras de categoría según si tienen filas visibles
   var cats=document.querySelectorAll('#view-tienda [data-cat]');
